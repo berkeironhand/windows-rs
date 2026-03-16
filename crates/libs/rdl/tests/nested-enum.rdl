@@ -1,0 +1,29 @@
+#[win32]
+mod Test {
+    struct Name {
+        #[repr(u32)]
+        a1: enum {
+            Variant1 = 0,
+            Variant2 = 1,
+        },
+        a2: u32,
+    }
+    struct Name2 {
+        #[repr(u32)]
+        #[flags]
+        a1: enum {
+            None = 0,
+            Flag1 = 1,
+            Flag2 = 2,
+        },
+        a2: u32,
+    }
+    union Name3 {
+        #[repr(u32)]
+        a1: enum {
+            Variant1 = 0,
+            Variant2 = 1,
+        },
+        a2: u32,
+    }
+}

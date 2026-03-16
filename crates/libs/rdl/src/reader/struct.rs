@@ -1,3 +1,4 @@
+use super::r#enum::encode_enum_def;
 use super::*;
 
 #[derive(Debug, Clone)]
@@ -15,6 +16,7 @@ pub struct Struct {
 pub enum StructField {
     Regular(syn::Field),
     Nested { name: syn::Ident, def: Struct },
+    NestedEnum { name: syn::Ident, def: Enum },
 }
 
 impl syn::parse::Parse for Struct {
@@ -76,6 +78,30 @@ impl syn::parse::Parse for StructField {
                     is_union: true,
                 },
             })
+        } else if input.peek(syn::Token![enum]) {
+            let enum_token: syn::Token![enum] = input.parse()?;
+            let explicit_enum_name: Option<syn::Ident> = input.parse().ok();
+
+            let content;
+            syn::braced!(content in input);
+
+            let variants = content
+                .parse_terminated(syn::Variant::parse, syn::Token![,])?
+                .into_iter()
+                .collect();
+
+            // The attributes captured before the field name (e.g. `#[repr(u32)]`) are
+            // used as the nested enum's own attributes, not the field's attributes.
+            Ok(StructField::NestedEnum {
+                name: name.clone(),
+                def: Enum {
+                    attrs,
+                    token: enum_token,
+                    name: explicit_enum_name.unwrap_or_else(|| name.clone()),
+                    variants,
+                    winrt: false,
+                },
+            })
         } else {
             Ok(StructField::Regular(syn::Field {
                 attrs,
@@ -97,9 +123,14 @@ impl Struct {
     }
 }
 
+enum NestedDef<'a> {
+    Struct(&'a Struct),
+    Enum(&'a Enum),
+}
+
 struct NestedEntry<'a> {
     full_path: String,
-    def: &'a Struct,
+    def: NestedDef<'a>,
 }
 
 fn encode_struct_inner(
@@ -143,7 +174,8 @@ fn collect_nested<'a>(
     item.fields
         .iter()
         .filter_map(|field| match field {
-            StructField::Nested { name, def, .. } => Some((name, def)),
+            StructField::Nested { name, def } => Some((name, NestedDef::Struct(def))),
+            StructField::NestedEnum { name, def } => Some((name, NestedDef::Enum(def))),
             _ => None,
         })
         .enumerate()
@@ -201,7 +233,14 @@ fn encode_children(
 ) -> Result<(), Error> {
     for entry in nested.values() {
         let nested_name = last_segment(&entry.full_path);
-        encode_struct_inner(encoder, entry.def, nested_name, Some(outer), breadcrumbs)?;
+        match &entry.def {
+            NestedDef::Struct(def) => {
+                encode_struct_inner(encoder, def, nested_name, Some(outer), breadcrumbs)?;
+            }
+            NestedDef::Enum(def) => {
+                encode_enum_def(encoder, def, encoder.namespace, nested_name, Some(outer))?;
+            }
+        }
     }
     Ok(())
 }
@@ -236,7 +275,7 @@ fn emit_fields(
                     &[],
                 )?;
             }
-            StructField::Nested { name, .. } => {
+            StructField::Nested { name, .. } | StructField::NestedEnum { name, .. } => {
                 let field_name = name.to_string();
                 let field_type =
                     metadata::Type::named(encoder.namespace, &nested[&field_name].full_path);
