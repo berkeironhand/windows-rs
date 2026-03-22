@@ -165,14 +165,18 @@ impl File {
                 + core::mem::size_of::<GuidsHeader>()
                 + core::mem::size_of::<BlobsHeader>();
 
-            let size_of_image = optional.FileAlignment as usize
-                + core::mem::size_of::<IMAGE_COR20_HEADER>()
+            let size_of_content = core::mem::size_of::<IMAGE_COR20_HEADER>()
                 + core::mem::size_of::<METADATA_HEADER>()
                 + size_of_stream_headers
                 + size_of_streams;
 
-            optional.SizeOfImage = round(size_of_image, optional.SectionAlignment as usize) as u32;
-            section.Misc.VirtualSize = size_of_image as u32 - optional.FileAlignment;
+            let size_of_image = optional.FileAlignment as usize + size_of_content;
+
+            optional.SizeOfImage = round(
+                SECTION_ALIGNMENT as usize + size_of_content,
+                optional.SectionAlignment as usize,
+            ) as u32;
+            section.Misc.VirtualSize = size_of_content as u32;
 
             section.SizeOfRawData = round(
                 section.Misc.VirtualSize as usize,
