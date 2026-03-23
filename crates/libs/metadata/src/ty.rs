@@ -20,6 +20,7 @@ pub enum Type {
     String,
     Object,
     Name(TypeName),
+    ValueType(TypeName),
     Array(Box<Self>),             // ELEMENT_TYPE_SZARRAY
     Generic(String, u16),         // ELEMENT_TYPE_VAR
     RefMut(Box<Self>),            // ELEMENT_TYPE_BYREF

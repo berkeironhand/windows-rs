@@ -160,7 +160,7 @@ pub fn type_to_string(ty: &Type) -> String {
         Type::String => "String".to_string(),
         Type::Object => "Object".to_string(),
         Type::Generic(name, index) => format!("Generic({name},{index})"),
-        Type::Name(tn) => {
+        Type::Name(tn) | Type::ValueType(tn) => {
             if tn.generics.is_empty() {
                 format!("{}.{}", tn.namespace, tn.name)
             } else {

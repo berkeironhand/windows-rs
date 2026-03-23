@@ -445,6 +445,7 @@ impl File {
             }
 
             Type::Name(ty) => self.TypeName(&ty.namespace, &ty.name, &ty.generics, buffer),
+            Type::ValueType(ty) => self.TypeValueName(&ty.namespace, &ty.name, buffer),
         }
     }
 
@@ -473,6 +474,13 @@ impl File {
                 self.Type(ty, buffer);
             }
         }
+    }
+
+    /// Writes a known-value-type (e.g. an enum) into a signature buffer using ELEMENT_TYPE_VALUETYPE.
+    fn TypeValueName(&mut self, namespace: &str, name: &str, buffer: &mut Vec<u8>) {
+        let pos = self.TypeRef(namespace, name);
+        buffer.push(ELEMENT_TYPE_VALUETYPE);
+        buffer.write_compressed(TypeDefOrRef::TypeRef(pos).encode() as usize);
     }
 
     /// Writes the `Type` into a `FileSig` buffer and stores it in the file, returning the blob offset.

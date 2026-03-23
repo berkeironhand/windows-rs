@@ -659,7 +659,7 @@ fn write_type(namespace: &str, item: &metadata::Type) -> TokenStream {
 
             ty
         }
-        Name(type_name) => {
+        Name(type_name) | ValueType(type_name) => {
             let name = write_ident(&type_name.name);
 
             let name = if type_name.generics.is_empty() {
