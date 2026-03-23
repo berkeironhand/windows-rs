@@ -48,28 +48,27 @@ impl syn::parse::Parse for Attribute {
     }
 }
 
-impl Attribute {
-    pub fn encode(&self, encoder: &mut Encoder<'_, '_>) -> Result<(), Error> {
-        let extends = encoder.output.TypeRef("System", "Attribute");
+impl<'a, 'b: 'a> Encoder<'a, 'b> {
+    pub(super) fn encode_attribute(&mut self, ty: &Attribute) -> Result<(), Error> {
+        let extends = self.output.TypeRef("System", "Attribute");
 
         let mut flags = metadata::TypeAttributes::Public | metadata::TypeAttributes::Sealed;
 
-        if self.winrt {
+        if ty.winrt {
             flags |= metadata::TypeAttributes::WindowsRuntime;
         }
 
-        let attr_type = encoder.output.TypeDef(
-            encoder.namespace,
-            encoder.name,
+        let attr_type = self.output.TypeDef(
+            self.namespace,
+            self.name,
             metadata::writer::TypeDefOrRef::TypeRef(extends),
             flags,
         );
 
         // Emit any Named attributes (defined in metadata or RDL) attached to this attribute definition.
-        encode_attrs(
-            encoder,
+        self.encode_attrs(
             metadata::writer::HasAttribute::TypeDef(attr_type),
-            &self.attrs,
+            &ty.attrs,
             &[],
         )?;
 
@@ -78,11 +77,11 @@ impl Attribute {
             | metadata::MethodAttributes::SpecialName
             | metadata::MethodAttributes::RTSpecialName;
 
-        for method in &self.methods {
+        for method in &ty.methods {
             let mut params = vec![];
 
             for arg in method.inputs.iter() {
-                params.push(bare_param(encoder, arg)?);
+                params.push(self.bare_param(arg)?);
             }
 
             let types = params.iter().map(|param| param.ty.clone()).collect();
@@ -93,19 +92,17 @@ impl Attribute {
                 types,
             };
 
-            encoder
-                .output
+            self.output
                 .MethodDef(".ctor", &signature, flags, Default::default());
 
             for (sequence, param) in params.iter().enumerate() {
-                let param_id = encoder.output.Param(
+                let param_id = self.output.Param(
                     &param.name,
                     (sequence + 1).try_into().unwrap(),
                     param.attributes,
                 );
 
-                encode_attrs(
-                    encoder,
+                self.encode_attrs(
                     metadata::writer::HasAttribute::Param(param_id),
                     &param.attrs,
                     &["input", "output", "optional"],
@@ -114,11 +111,11 @@ impl Attribute {
         }
 
         // Emit public instance fields for named properties (e.g. `version: u32`).
-        for (prop_name, prop_ty) in &self.properties {
-            let ty = encode_type(encoder, prop_ty)?;
-            encoder.output.Field(
+        for (prop_name, prop_ty) in &ty.properties {
+            let t = self.encode_type(prop_ty)?;
+            self.output.Field(
                 &prop_name.to_string(),
-                &ty,
+                &t,
                 metadata::FieldAttributes::Public,
             );
         }
