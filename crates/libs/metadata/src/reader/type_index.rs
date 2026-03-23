@@ -52,6 +52,19 @@ impl TypeIndex {
         &self.files[pos]
     }
 
+    /// Returns the assembly name for any file that contains types in `namespace`,
+    /// or an empty string if the namespace is not found.
+    pub fn assembly_name_for_namespace(&self, namespace: &str) -> &str {
+        if let Some(types) = self.types.get(namespace) {
+            if let Some(variants) = types.values().next() {
+                if let Some((file_pos, _)) = variants.first() {
+                    return self.files[*file_pos].assembly_name();
+                }
+            }
+        }
+        ""
+    }
+
     pub fn iter(&self) -> impl Iterator<Item = (&str, &str, TypeDef<'_>)> + '_ {
         self.types
             .iter()

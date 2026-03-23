@@ -5,6 +5,7 @@ pub struct File {
     strings: usize,
     blobs: usize,
     tables: [Table; 17],
+    assembly_name: String,
 }
 
 impl File {
@@ -18,6 +19,7 @@ impl File {
             strings: 0,
             blobs: 0,
             tables: Default::default(),
+            assembly_name: String::new(),
         };
 
         let dos = result.bytes.view_as::<IMAGE_DOS_HEADER>(0)?;
@@ -465,6 +467,31 @@ impl File {
         result.tables[ImplMap::TABLE].set_data(&mut view);
         unused_field_rva.set_data(&mut view);
         unused_assembly.set_data(&mut view);
+
+        // Read the assembly name from the Assembly table (row 0, column 4 = Name).
+        if unused_assembly.len > 0 {
+            let name_col = &unused_assembly.columns[4];
+            let data_offset = unused_assembly.offset + name_col.offset;
+            let str_idx = match name_col.width {
+                2 => result
+                    .bytes
+                    .copy_as::<u16>(data_offset)
+                    .map_or(0, |v| v as usize),
+                4 => result
+                    .bytes
+                    .copy_as::<u32>(data_offset)
+                    .map_or(0, |v| v as usize),
+                _ => 0,
+            };
+            let str_start = result.strings + str_idx;
+            if str_start < result.bytes.len() {
+                let str_bytes = &result.bytes[str_start..];
+                let nul = str_bytes.iter().position(|&b| b == 0).unwrap_or(0);
+                result.assembly_name = std::str::from_utf8(&str_bytes[..nul])
+                    .unwrap_or("")
+                    .to_string();
+            }
+        }
         unused_assembly_processor.set_data(&mut view);
         unused_assembly_os.set_data(&mut view);
         unused_assembly_ref.set_data(&mut view);
@@ -477,6 +504,11 @@ impl File {
         result.tables[GenericParam::TABLE].set_data(&mut view);
 
         Some(result)
+    }
+
+    /// Returns the assembly name from the file's Assembly table, or an empty string if absent.
+    pub fn assembly_name(&self) -> &str {
+        &self.assembly_name
     }
 
     pub(crate) fn usize(&self, row: usize, table: usize, column: usize) -> usize {

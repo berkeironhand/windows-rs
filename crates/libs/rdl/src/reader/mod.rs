@@ -265,6 +265,21 @@ fn validate_use_declarations(
 fn encode(index: Index, reference: &metadata::reader::TypeIndex) -> Result<Vec<u8>, Error> {
     let mut output = metadata::writer::File::new("");
 
+    // Register the real assembly name for every namespace root that appears in the
+    // reference metadata, so generated AssemblyRef rows carry the correct identity.
+    let mut seen_roots = std::collections::HashSet::new();
+    for (namespace, _, _) in reference.iter() {
+        let root = namespace
+            .split_once('.')
+            .map_or(namespace, |(prefix, _)| prefix);
+        if root != "System" && seen_roots.insert(root) {
+            let assembly_name = reference.assembly_name_for_namespace(namespace);
+            if !assembly_name.is_empty() {
+                output.register_assembly_name(root, assembly_name);
+            }
+        }
+    }
+
     for (namespace, members) in &index.namespaces {
         for variants in members.types.values() {
             for (file, item) in variants {

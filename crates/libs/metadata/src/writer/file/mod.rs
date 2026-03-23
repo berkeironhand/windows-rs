@@ -26,6 +26,9 @@ pub struct File {
     ModuleRef: HashMap<String, id::ModuleRef>,
     MemberRef: HashMap<rec::MemberRef, id::MemberRef>,
 
+    // Maps namespace root (e.g. "Windows") to the real assembly name read from a reference winmd.
+    assembly_names: HashMap<String, String>,
+
     // Staging for sorted rows before these records can be written. BTreeMap is used rather than HashMap to allow reproducible builds.
     Constant: BTreeMap<HasConstant, rec::Constant>,
     Attribute: BTreeMap<HasAttribute, Vec<rec::Attribute>>,
@@ -65,6 +68,14 @@ impl File {
         file
     }
 
+    /// Registers the real assembly name for a given namespace root so that generated
+    /// `AssemblyRef` rows use the name read from the reference winmd's Assembly table
+    /// instead of the synthesized root-namespace name.
+    pub fn register_assembly_name(&mut self, namespace_root: &str, assembly_name: &str) {
+        self.assembly_names
+            .insert(namespace_root.to_string(), assembly_name.to_string());
+    }
+
     fn ModuleRef(&mut self, name: &str) -> id::ModuleRef {
         if let Some(pos) = self.ModuleRef.get(name) {
             return *pos;
@@ -97,8 +108,6 @@ impl File {
 
     /// Adds an `AssemblyRef` row representing the given namespace to the file, returning the row offset.
     fn AssemblyRef(&mut self, namespace: &str) -> id::AssemblyRef {
-        // This generates a synthetic `AssemblyRef` for every root namespace, but the alternative requires a
-        // lot more contextual information which we can hopefully avoid for now.
         let namespace = namespace
             .split_once('.')
             .map_or(namespace, |(prefix, _)| prefix);
@@ -117,8 +126,15 @@ impl File {
                 ..Default::default()
             })
         } else {
+            // Use the real assembly name from the reference winmd if one was registered,
+            // falling back to the namespace root for backwards compatibility.
+            let name = self
+                .assembly_names
+                .get(namespace)
+                .cloned()
+                .unwrap_or_else(|| namespace.to_string());
             self.records.AssemblyRef.push_pos(rec::AssemblyRef {
-                Name: self.strings.insert(namespace),
+                Name: self.strings.insert(&name),
                 MajorVersion: 0xFF,
                 MinorVersion: 0xFF,
                 BuildNumber: 0xFF,
