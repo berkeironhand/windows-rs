@@ -55,7 +55,7 @@ impl syn::parse::Parse for ClassInterface {
 }
 
 impl Class {
-    pub fn encode(&self, encoder: &mut Encoder) -> Result<(), Error> {
+    pub fn encode(&self, encoder: &mut Encoder<'_, '_>) -> Result<(), Error> {
         let extends = if let Some(path) = &self.extends {
             let extends = encode_path(encoder, path)?;
             if let metadata::Type::Name(extends) = extends {
@@ -95,7 +95,7 @@ impl Class {
 }
 
 fn encode_implement(
-    encoder: &mut Encoder,
+    encoder: &mut Encoder<'_, '_>,
     class: metadata::writer::TypeDef,
     interface: &ClassInterface,
 ) -> Result<(), Error> {

@@ -32,14 +32,14 @@ impl Item {
         }
     }
 
-    pub fn encode(
+    pub fn encode<'a, 'b: 'a>(
         &self,
-        output: &mut metadata::writer::File,
-        index: &Index,
-        reference: &metadata::reader::TypeIndex,
-        file: &File,
-        namespace: &str,
-        name: &str,
+        output: &'a mut metadata::writer::File<'b>,
+        index: &'a Index<'a>,
+        reference: &'b metadata::reader::TypeIndex,
+        file: &'a File,
+        namespace: &'a str,
+        name: &'a str,
     ) -> Result<(), Error> {
         let encoder = &mut Encoder {
             output,

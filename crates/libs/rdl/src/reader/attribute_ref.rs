@@ -20,7 +20,7 @@ struct AttributeInfo {
 
 /// Finds an attribute type (as `<ident>Attribute`) in the encoder's index and
 /// reference, returning its full `AttributeInfo`.
-fn find_attribute_type(encoder: &Encoder, path: &syn::Path) -> Option<AttributeInfo> {
+fn find_attribute_type(encoder: &Encoder<'_, '_>, path: &syn::Path) -> Option<AttributeInfo> {
     // Convert Rust-style `A::B::C` path to metadata-style `A.B.C` namespace + name.
     let mut segments: Vec<String> = path.segments.iter().map(|s| s.ident.to_string()).collect();
 
@@ -69,7 +69,11 @@ fn find_attribute_type(encoder: &Encoder, path: &syn::Path) -> Option<AttributeI
 
 /// Searches the metadata reference for a type with the given namespace/name that
 /// has `TypeCategory::Attribute`, and returns its full `AttributeInfo`.
-fn find_in_reference(encoder: &Encoder, namespace: &str, attr_name: &str) -> Option<AttributeInfo> {
+fn find_in_reference(
+    encoder: &Encoder<'_, '_>,
+    namespace: &str,
+    attr_name: &str,
+) -> Option<AttributeInfo> {
     let mut constructors = vec![];
     let mut properties = vec![];
 
@@ -109,7 +113,11 @@ fn find_in_reference(encoder: &Encoder, namespace: &str, attr_name: &str) -> Opt
 
 /// Searches the RDL index for an `Item::Attribute` with the given namespace/name
 /// and returns its full `AttributeInfo`.
-fn find_in_index(encoder: &Encoder, namespace: &str, attr_name: &str) -> Option<AttributeInfo> {
+fn find_in_index(
+    encoder: &Encoder<'_, '_>,
+    namespace: &str,
+    attr_name: &str,
+) -> Option<AttributeInfo> {
     let (_, item) = *encoder
         .index
         .namespaces
@@ -158,7 +166,10 @@ struct SplitArgs<'a> {
 ///
 /// Returns an error if a positional argument follows a named one, or if the
 /// left-hand side of an `=` expression is not a plain identifier.
-fn split_args<'a>(encoder: &Encoder, args: &'a [syn::Expr]) -> Result<SplitArgs<'a>, Error> {
+fn split_args<'a>(
+    encoder: &Encoder<'_, '_>,
+    args: &'a [syn::Expr],
+) -> Result<SplitArgs<'a>, Error> {
     let mut positional: Vec<&syn::Expr> = vec![];
     let mut named: Vec<(String, &syn::Expr)> = vec![];
 
@@ -192,7 +203,7 @@ fn split_args<'a>(encoder: &Encoder, args: &'a [syn::Expr]) -> Result<SplitArgs<
 ///
 /// Returns the combined ordered `(name, value)` list ready for the blob writer.
 fn resolve_attribute_args(
-    encoder: &Encoder,
+    encoder: &Encoder<'_, '_>,
     attr: &syn::Attribute,
     info: &AttributeInfo,
     positional: &[&syn::Expr],
@@ -260,7 +271,7 @@ fn resolve_attribute_args(
 /// string literals, `System.Type` (serialised as a UTF-8 string), and enum
 /// types (accepting an unqualified variant-name identifier).
 fn encode_attr_value(
-    encoder: &Encoder,
+    encoder: &Encoder<'_, '_>,
     ty: &metadata::Type,
     value: &syn::Expr,
 ) -> Result<metadata::Value, Error> {
@@ -374,7 +385,7 @@ fn collect_bitor_variants_inner(expr: &syn::Expr, names: &mut Vec<String>) -> Op
 /// Returns `true` if the enum type referred to by `tn` carries the flags marker —
 /// either `System.FlagsAttribute` in a metadata reference or the `#[flags]`
 /// attribute in the RDL index.
-fn enum_is_flags(encoder: &Encoder, tn: &metadata::TypeName) -> bool {
+fn enum_is_flags(encoder: &Encoder<'_, '_>, tn: &metadata::TypeName) -> bool {
     // Check in the metadata reference (external winmd files).
     for typedef in encoder.reference.get(&tn.namespace, &tn.name) {
         if typedef.category() == metadata::reader::TypeCategory::Enum
@@ -401,7 +412,7 @@ fn enum_is_flags(encoder: &Encoder, tn: &metadata::TypeName) -> bool {
 /// Looks up the integer value of an enum variant by name, searching first the
 /// metadata reference (external winmd files) then the RDL index.
 fn find_enum_variant_value(
-    encoder: &Encoder,
+    encoder: &Encoder<'_, '_>,
     tn: &metadata::TypeName,
     variant_name: &str,
     spanned: &syn::Expr,
@@ -471,7 +482,7 @@ fn find_enum_variant_value(
 /// The caller is responsible for filtering out built-in RDL attributes before
 /// calling this function.
 pub fn resolve_attribute_ref(
-    encoder: &Encoder,
+    encoder: &Encoder<'_, '_>,
     attr: &syn::Attribute,
 ) -> Result<AttributeRef, Error> {
     let path = attr.path();
@@ -514,7 +525,7 @@ pub fn resolve_attribute_ref(
 
 /// Emits a custom attribute onto `has_attribute` in the metadata output.
 pub fn encode_named_attribute(
-    encoder: &mut Encoder,
+    encoder: &mut Encoder<'_, '_>,
     has_attribute: metadata::writer::HasAttribute,
     attr_ref: &AttributeRef,
 ) {
@@ -549,7 +560,7 @@ pub fn encode_named_attribute(
 }
 
 /// Returns `true` if `attr` resolves to `Windows.Foundation.Metadata.GuidAttribute`.
-pub fn is_guid_attribute(encoder: &Encoder, attr: &syn::Attribute) -> bool {
+pub fn is_guid_attribute(encoder: &Encoder<'_, '_>, attr: &syn::Attribute) -> bool {
     find_attribute_type(encoder, attr.path())
         .map(|info| &info.type_name == ("Windows.Foundation.Metadata", "GuidAttribute"))
         .unwrap_or(false)
@@ -562,7 +573,7 @@ pub fn is_guid_attribute(encoder: &Encoder, attr: &syn::Attribute) -> bool {
 ///
 /// Returns an error if any remaining attribute cannot be resolved.
 pub fn encode_attrs(
-    encoder: &mut Encoder,
+    encoder: &mut Encoder<'_, '_>,
     has_attribute: metadata::writer::HasAttribute,
     attrs: &[syn::Attribute],
     skip: &[&str],

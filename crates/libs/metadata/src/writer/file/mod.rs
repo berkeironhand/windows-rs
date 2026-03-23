@@ -13,8 +13,7 @@ mod helpers;
 use helpers::*;
 
 /// Represents an ECMA-335 file in memory so that it can be built incrementally.
-#[derive(Default)]
-pub struct File {
+pub struct File<'a> {
     strings: Strings,
     blobs: Blobs,
     records: rec::Records,
@@ -30,12 +29,27 @@ pub struct File {
     Constant: BTreeMap<HasConstant, rec::Constant>,
     Attribute: BTreeMap<HasAttribute, Vec<rec::Attribute>>,
     GenericParam: BTreeMap<TypeOrMethodDef, Vec<rec::GenericParam>>,
+
+    reference: &'a reader::TypeIndex,
 }
 
-impl File {
+impl<'a> File<'a> {
     /// Creates a minimal ECMA-335 file representation.
-    pub fn new(name: &str) -> Self {
-        let mut file = Self::default();
+    pub fn new(name: &str, reference: &'a reader::TypeIndex) -> Self {
+        let mut file = File {
+            strings: Default::default(),
+            blobs: Default::default(),
+            records: Default::default(),
+            TypeRef: Default::default(),
+            TypeSpec: Default::default(),
+            AssemblyRef: Default::default(),
+            ModuleRef: Default::default(),
+            MemberRef: Default::default(),
+            Constant: Default::default(),
+            Attribute: Default::default(),
+            GenericParam: Default::default(),
+            reference,
+        };
 
         // This assembly.
         file.records.Assembly.push(rec::Assembly {
@@ -95,19 +109,13 @@ impl File {
         })
     }
 
-    /// Adds an `AssemblyRef` row representing the given namespace to the file, returning the row offset.
-    fn AssemblyRef(&mut self, namespace: &str) -> id::AssemblyRef {
-        // This generates a synthetic `AssemblyRef` for every root namespace, but the alternative requires a
-        // lot more contextual information which we can hopefully avoid for now.
-        let namespace = namespace
-            .split_once('.')
-            .map_or(namespace, |(prefix, _)| prefix);
-
-        if let Some(pos) = self.AssemblyRef.get(namespace) {
+    /// Adds an `AssemblyRef` row representing the given assembly to the file, returning the row offset.
+    fn AssemblyRef(&mut self, assembly_name: &str) -> id::AssemblyRef {
+        if let Some(pos) = self.AssemblyRef.get(assembly_name) {
             return *pos;
         }
 
-        let pos = id::AssemblyRef(if namespace == "System" {
+        let pos = id::AssemblyRef(if assembly_name == "System" {
             self.records.AssemblyRef.push_pos(rec::AssemblyRef {
                 Name: self.strings.insert("mscorlib"),
                 MajorVersion: 4,
@@ -118,7 +126,7 @@ impl File {
             })
         } else {
             self.records.AssemblyRef.push_pos(rec::AssemblyRef {
-                Name: self.strings.insert(namespace),
+                Name: self.strings.insert(assembly_name),
                 MajorVersion: 0xFF,
                 MinorVersion: 0xFF,
                 BuildNumber: 0xFF,
@@ -128,7 +136,7 @@ impl File {
             })
         });
 
-        self.AssemblyRef.insert(namespace.to_string(), pos);
+        self.AssemblyRef.insert(assembly_name.to_string(), pos);
         pos
     }
 
@@ -166,7 +174,11 @@ impl File {
                 ResolutionScope: ResolutionScope::TypeRef(enclosing),
             }))
         } else {
-            let scope = ResolutionScope::AssemblyRef(self.AssemblyRef(namespace));
+            let scope = if let Some(assembly_name) = self.reference.assembly_name(namespace, name) {
+                ResolutionScope::AssemblyRef(self.AssemblyRef(assembly_name))
+            } else {
+                ResolutionScope::Module(id::Module(0)) // this file
+            };
             id::TypeRef(self.records.TypeRef.push_pos(rec::TypeRef {
                 TypeName: self.strings.insert(name),
                 TypeNamespace: self.strings.insert(namespace),

@@ -52,7 +52,7 @@ impl syn::parse::Parse for Interface {
 }
 
 impl Interface {
-    pub fn encode(&self, encoder: &mut Encoder) -> Result<(), Error> {
+    pub fn encode(&self, encoder: &mut Encoder<'_, '_>) -> Result<(), Error> {
         let mut flags = metadata::TypeAttributes::Public
             | metadata::TypeAttributes::Abstract
             | metadata::TypeAttributes::Interface;

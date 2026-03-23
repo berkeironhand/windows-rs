@@ -2,7 +2,8 @@ use windows_metadata::*;
 
 #[test]
 fn test() {
-    let mut file = writer::File::new("test");
+    let reference = reader::TypeIndex::new(vec![]);
+    let mut file = writer::File::new("test", &reference);
 
     file.TypeDef(
         "Namespace",

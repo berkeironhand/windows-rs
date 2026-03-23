@@ -20,7 +20,7 @@ impl syn::parse::Parse for Fn {
 }
 
 impl Fn {
-    pub fn encode(&self, encoder: &mut Encoder) -> Result<(), Error> {
+    pub fn encode(&self, encoder: &mut Encoder<'_, '_>) -> Result<(), Error> {
         let flags = metadata::MethodAttributes::Public
             | metadata::MethodAttributes::HideBySig
             | metadata::MethodAttributes::Static

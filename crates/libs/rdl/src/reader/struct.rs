@@ -34,7 +34,7 @@ impl syn::parse::Parse for Struct {
 }
 
 impl Struct {
-    pub fn encode(&self, encoder: &mut Encoder) -> Result<(), Error> {
+    pub fn encode(&self, encoder: &mut Encoder<'_, '_>) -> Result<(), Error> {
         let type_def = encode_struct_or_union(
             encoder,
             &self.name.to_string(),
@@ -58,7 +58,7 @@ impl Struct {
 
 /// Encode a flat struct or union type definition into the metadata output.
 pub fn encode_struct_or_union(
-    encoder: &mut Encoder,
+    encoder: &mut Encoder<'_, '_>,
     item_name: &str,
     winrt: bool,
     is_union: bool,

@@ -48,9 +48,8 @@ fn main() {
         .expect("`--out` file name is required")
         .to_string_lossy();
 
-    let mut writer = writer::File::new(&name);
-
     let index = reader::TypeIndex::new(input);
+    let mut writer = writer::File::new(&name, &index);
 
     for ty in index.types() {
         write_type(&mut writer, &index, ty, None);
@@ -101,7 +100,7 @@ fn expand_input(input: Vec<String>) -> Vec<reader::File> {
 }
 
 fn write_type(
-    writer: &mut writer::File,
+    writer: &mut writer::File<'_>,
     index: &reader::TypeIndex,
     def: reader::TypeDef,
     outer: Option<writer::TypeDef>,
@@ -209,7 +208,7 @@ fn write_type(
 }
 
 fn write_attributes<'a, R: reader::HasAttributes<'a>>(
-    writer: &mut writer::File,
+    writer: &mut writer::File<'_>,
     parent: writer::HasAttribute,
     row: R,
 ) {

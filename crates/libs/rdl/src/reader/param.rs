@@ -8,7 +8,7 @@ pub struct Param {
 }
 
 fn parse_param_attributes(
-    encoder: &mut Encoder,
+    encoder: &mut Encoder<'_, '_>,
     attrs: &[syn::Attribute],
     ty: &metadata::Type,
 ) -> Result<metadata::ParamAttributes, Error> {
@@ -45,7 +45,7 @@ fn parse_param_attributes(
     Ok(attributes)
 }
 
-pub fn param(encoder: &mut Encoder, param: &syn::PatType) -> Result<Param, Error> {
+pub fn param(encoder: &mut Encoder<'_, '_>, param: &syn::PatType) -> Result<Param, Error> {
     let syn::Pat::Ident(ref name) = *param.pat else {
         return encoder.err(param, "param name not found");
     };
@@ -62,7 +62,7 @@ pub fn param(encoder: &mut Encoder, param: &syn::PatType) -> Result<Param, Error
     })
 }
 
-pub fn bare_param(encoder: &mut Encoder, param: &syn::BareFnArg) -> Result<Param, Error> {
+pub fn bare_param(encoder: &mut Encoder<'_, '_>, param: &syn::BareFnArg) -> Result<Param, Error> {
     let Some((ref name, _)) = param.name else {
         return encoder.err(param, "param name not found");
     };
@@ -80,7 +80,10 @@ pub fn bare_param(encoder: &mut Encoder, param: &syn::BareFnArg) -> Result<Param
 
 /// Collects parameters from a function signature that has no `self` parameter.
 /// Returns an error if a `self` parameter is found or if parameter names are not unique.
-pub fn collect_params(encoder: &mut Encoder, sig: &syn::Signature) -> Result<Vec<Param>, Error> {
+pub fn collect_params(
+    encoder: &mut Encoder<'_, '_>,
+    sig: &syn::Signature,
+) -> Result<Vec<Param>, Error> {
     let mut params = vec![];
     let mut param_names = HashSet::new();
 

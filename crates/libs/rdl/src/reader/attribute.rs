@@ -49,7 +49,7 @@ impl syn::parse::Parse for Attribute {
 }
 
 impl Attribute {
-    pub fn encode(&self, encoder: &mut Encoder) -> Result<(), Error> {
+    pub fn encode(&self, encoder: &mut Encoder<'_, '_>) -> Result<(), Error> {
         let extends = encoder.output.TypeRef("System", "Attribute");
 
         let mut flags = metadata::TypeAttributes::Public | metadata::TypeAttributes::Sealed;

@@ -2,7 +2,8 @@ use windows_metadata::*;
 
 #[test]
 fn file() {
-    let writer = writer::File::new("TestName");
+    let reference = reader::TypeIndex::new(vec![]);
+    let writer = writer::File::new("TestName", &reference);
 
     let bytes = writer.into_stream();
     std::fs::write("tests/assembly_name.winmd", bytes).unwrap();

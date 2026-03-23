@@ -117,7 +117,7 @@ impl Reader {
             .and_then(|file_name| file_name.to_str())
             .ok_or_else(|| Error::new("invalid output", &self.output, 0, 0))?;
 
-        let mut output = metadata::writer::File::new(assembly_name);
+        let mut output = metadata::writer::File::new(assembly_name, reference);
 
         for (namespace, members) in &index.namespaces {
             for variants in members.types.values() {
@@ -310,17 +310,17 @@ fn validate_use_declarations(
     Ok(())
 }
 
-struct Encoder<'a> {
-    output: &'a mut metadata::writer::File,
+struct Encoder<'a, 'b: 'a> {
+    output: &'a mut metadata::writer::File<'b>,
     index: &'a Index<'a>,
-    reference: &'a metadata::reader::TypeIndex,
+    reference: &'b metadata::reader::TypeIndex,
     file: &'a File,
     namespace: &'a str,
     name: &'a str,
     generics: Vec<String>,
 }
 
-impl Encoder<'_> {
+impl<'a, 'b: 'a> Encoder<'a, 'b> {
     fn error<S: syn::spanned::Spanned>(&self, spanned: S, message: &str) -> Error {
         let start = spanned.span().start();
 
@@ -335,7 +335,7 @@ impl Encoder<'_> {
 /// Parse an optional `#[packed(N)]` attribute from `attrs`.  Returns `Some(N)` if
 /// the attribute is present and well-formed, `None` if absent, or an error if the
 /// attribute is malformed.
-fn read_packed(encoder: &Encoder, attrs: &[syn::Attribute]) -> Result<Option<u16>, Error> {
+fn read_packed(encoder: &Encoder<'_, '_>, attrs: &[syn::Attribute]) -> Result<Option<u16>, Error> {
     for attr in attrs {
         if !attr.path().is_ident("packed") {
             continue;
@@ -355,7 +355,7 @@ fn read_packed(encoder: &Encoder, attrs: &[syn::Attribute]) -> Result<Option<u16
     Ok(None)
 }
 
-fn encode_type(encoder: &Encoder, ty: &syn::Type) -> Result<metadata::Type, Error> {
+fn encode_type(encoder: &Encoder<'_, '_>, ty: &syn::Type) -> Result<metadata::Type, Error> {
     match ty {
         syn::Type::Path(ty) => encode_type_path(encoder, ty),
         syn::Type::Ptr(ty) => encode_type_ptr(encoder, ty),
@@ -376,7 +376,7 @@ fn encode_type(encoder: &Encoder, ty: &syn::Type) -> Result<metadata::Type, Erro
 /// `Windows.Something`, the plain name `MarshalingType` must still be looked
 /// up in `Windows.Foundation.Metadata`, not in `Windows.Something`.
 fn encode_type_in_attr_ns(
-    encoder: &Encoder,
+    encoder: &Encoder<'_, '_>,
     attr_ns: &str,
     ty: &syn::Type,
 ) -> Result<metadata::Type, Error> {
@@ -424,13 +424,19 @@ fn encode_type_in_attr_ns(
     encode_type(encoder, ty)
 }
 
-fn encode_type_slice(encoder: &Encoder, ty: &syn::TypeSlice) -> Result<metadata::Type, Error> {
+fn encode_type_slice(
+    encoder: &Encoder<'_, '_>,
+    ty: &syn::TypeSlice,
+) -> Result<metadata::Type, Error> {
     Ok(metadata::Type::Array(Box::new(encode_type(
         encoder, &ty.elem,
     )?)))
 }
 
-fn encode_type_array(encoder: &Encoder, ty: &syn::TypeArray) -> Result<metadata::Type, Error> {
+fn encode_type_array(
+    encoder: &Encoder<'_, '_>,
+    ty: &syn::TypeArray,
+) -> Result<metadata::Type, Error> {
     Ok(metadata::Type::ArrayFixed(
         Box::new(encode_type(encoder, &ty.elem)?),
         encode_lit_int::<usize>(encoder, &ty.len)?,
@@ -438,7 +444,7 @@ fn encode_type_array(encoder: &Encoder, ty: &syn::TypeArray) -> Result<metadata:
 }
 
 fn encode_value(
-    encoder: &Encoder,
+    encoder: &Encoder<'_, '_>,
     ty: &metadata::Type,
     value: &syn::Expr,
 ) -> Result<metadata::Value, Error> {
@@ -478,7 +484,11 @@ fn encode_value(
     Ok(value)
 }
 
-fn rdl_underlying_type(encoder: &Encoder, namespace: &str, name: &str) -> Option<metadata::Type> {
+fn rdl_underlying_type(
+    encoder: &Encoder<'_, '_>,
+    namespace: &str,
+    name: &str,
+) -> Option<metadata::Type> {
     let item = encoder.index.get(namespace, name)?;
 
     if let Item::Struct(s) = item {
@@ -494,7 +504,7 @@ fn rdl_underlying_type(encoder: &Encoder, namespace: &str, name: &str) -> Option
     None
 }
 
-fn encode_neg_lit_int<T>(encoder: &Encoder, expr: &syn::Expr) -> Result<T, Error>
+fn encode_neg_lit_int<T>(encoder: &Encoder<'_, '_>, expr: &syn::Expr) -> Result<T, Error>
 where
     T: std::str::FromStr + TryFrom<i128>,
     T::Err: std::fmt::Display,
@@ -524,7 +534,7 @@ where
     value.ok_or_else(|| encoder.error(expr, "value not valid"))
 }
 
-fn encode_lit_int<T>(encoder: &Encoder, expr: &syn::Expr) -> Result<T, Error>
+fn encode_lit_int<T>(encoder: &Encoder<'_, '_>, expr: &syn::Expr) -> Result<T, Error>
 where
     T: std::str::FromStr,
     T::Err: std::fmt::Display,
@@ -541,7 +551,7 @@ where
     value.ok_or_else(|| encoder.error(expr, "value not valid"))
 }
 
-fn encode_neg_lit_float<T>(encoder: &Encoder, expr: &syn::Expr) -> Result<T, Error>
+fn encode_neg_lit_float<T>(encoder: &Encoder<'_, '_>, expr: &syn::Expr) -> Result<T, Error>
 where
     T: std::str::FromStr + std::ops::Neg<Output = T>,
     T::Err: std::fmt::Display,
@@ -568,7 +578,7 @@ where
     value.ok_or_else(|| encoder.error(expr, "value not valid"))
 }
 
-fn encode_lit_string(encoder: &Encoder, expr: &syn::Expr) -> Result<String, Error> {
+fn encode_lit_string(encoder: &Encoder<'_, '_>, expr: &syn::Expr) -> Result<String, Error> {
     let value = match expr {
         syn::Expr::Lit(syn::ExprLit {
             lit: syn::Lit::Str(string),
@@ -581,7 +591,7 @@ fn encode_lit_string(encoder: &Encoder, expr: &syn::Expr) -> Result<String, Erro
 }
 
 fn encode_type_reference(
-    encoder: &Encoder,
+    encoder: &Encoder<'_, '_>,
     ty: &syn::TypeReference,
 ) -> Result<metadata::Type, Error> {
     let is_mut = ty.mutability.is_some();
@@ -596,7 +606,7 @@ fn encode_type_reference(
     Ok(ty)
 }
 
-fn encode_type_ptr(encoder: &Encoder, ty: &syn::TypePtr) -> Result<metadata::Type, Error> {
+fn encode_type_ptr(encoder: &Encoder<'_, '_>, ty: &syn::TypePtr) -> Result<metadata::Type, Error> {
     let is_mut = ty.mutability.is_some();
     let ty = encode_type(encoder, &ty.elem)?;
 
@@ -634,11 +644,14 @@ fn glob_use_namespace(use_item: &syn::ItemUse) -> Option<String> {
     }
 }
 
-fn encode_type_path(encoder: &Encoder, ty: &syn::TypePath) -> Result<metadata::Type, Error> {
+fn encode_type_path(
+    encoder: &Encoder<'_, '_>,
+    ty: &syn::TypePath,
+) -> Result<metadata::Type, Error> {
     encode_path(encoder, &ty.path)
 }
 
-fn encode_path(encoder: &Encoder, ty: &syn::Path) -> Result<metadata::Type, Error> {
+fn encode_path(encoder: &Encoder<'_, '_>, ty: &syn::Path) -> Result<metadata::Type, Error> {
     let mut path = vec![];
 
     for segment in &ty.segments {
@@ -749,7 +762,10 @@ fn encode_path(encoder: &Encoder, ty: &syn::Path) -> Result<metadata::Type, Erro
     Err(encoder.error(ty, "type not found"))
 }
 
-fn encode_return_type(encoder: &Encoder, ty: &syn::ReturnType) -> Result<metadata::Type, Error> {
+fn encode_return_type(
+    encoder: &Encoder<'_, '_>,
+    ty: &syn::ReturnType,
+) -> Result<metadata::Type, Error> {
     match ty {
         syn::ReturnType::Type(_, ty) => encode_type(encoder, ty),
         _ => Ok(metadata::Type::Void),

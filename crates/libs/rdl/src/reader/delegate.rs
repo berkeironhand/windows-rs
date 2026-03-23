@@ -21,7 +21,7 @@ impl syn::parse::Parse for Delegate {
 }
 
 impl Delegate {
-    pub fn encode(&self, encoder: &mut Encoder) -> Result<(), Error> {
+    pub fn encode(&self, encoder: &mut Encoder<'_, '_>) -> Result<(), Error> {
         let extends = encoder.output.TypeRef("System", "MulticastDelegate");
 
         let flags = metadata::TypeAttributes::Public

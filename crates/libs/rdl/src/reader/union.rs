@@ -30,7 +30,7 @@ impl syn::parse::Parse for Union {
 }
 
 impl Union {
-    pub fn encode(&self, encoder: &mut Encoder) -> Result<(), Error> {
+    pub fn encode(&self, encoder: &mut Encoder<'_, '_>) -> Result<(), Error> {
         let type_def =
             encode_struct_or_union(encoder, &self.name.to_string(), false, true, &self.fields)?;
 

@@ -33,7 +33,7 @@ impl syn::parse::Parse for Const {
 }
 
 impl Const {
-    pub fn encode(&self, encoder: &mut Encoder) -> Result<(), Error> {
+    pub fn encode(&self, encoder: &mut Encoder<'_, '_>) -> Result<(), Error> {
         let name = self.name.to_string();
         let ty = encode_type(encoder, &self.ty)?;
 
@@ -49,7 +49,7 @@ impl Const {
 }
 
 fn encode_const_value(
-    encoder: &mut Encoder,
+    encoder: &mut Encoder<'_, '_>,
     ty: &windows_metadata::Type,
     item: &Const,
     name: &str,
@@ -80,7 +80,7 @@ fn encode_const_value(
 }
 
 fn encode_const_guid(
-    encoder: &mut Encoder,
+    encoder: &mut Encoder<'_, '_>,
     ty: &windows_metadata::Type,
     item: &Const,
     name: &str,
