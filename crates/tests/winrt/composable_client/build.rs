@@ -3,8 +3,13 @@ fn main() {
         return;
     }
 
+    println!("cargo:rerun-if-changed=../composable/metadata.winmd");
     println!("cargo:rerun-if-changed=src/interop.cpp");
     println!("cargo:rustc-link-lib=onecoreuap");
+
+    if !std::path::Path::new("../composable/metadata.winmd").exists() {
+        return;
+    }
 
     windows_bindgen::bindgen([
         "--in",

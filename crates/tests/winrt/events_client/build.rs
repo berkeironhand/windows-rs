@@ -1,6 +1,10 @@
 fn main() {
     println!("cargo:rerun-if-changed=../events/metadata.winmd");
 
+    if !std::path::Path::new("../events/metadata.winmd").exists() {
+        return;
+    }
+
     windows_bindgen::bindgen([
         "--in",
         "../events/metadata.winmd",

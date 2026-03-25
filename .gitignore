@@ -3,5 +3,14 @@
 /target
 *.lock
 *.winmd
+!crates/libs/bindgen/default/*.winmd
+!crates/samples/components/json_validator_winrt/sample.winmd
+!crates/tests/misc/component/component.winmd
+!crates/tests/winrt/activation/metadata.winmd
+!crates/tests/winrt/composable/metadata.winmd
+!crates/tests/winrt/constructors/metadata.winmd
+!crates/tests/winrt/events/metadata.winmd
+!crates/tests/winrt/overloads/metadata.winmd
+!crates/tests/winrt/reference/metadata.winmd
 obj
 bin

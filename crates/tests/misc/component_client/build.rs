@@ -1,4 +1,10 @@
 fn main() {
+    println!("cargo:rerun-if-changed=../component/component.winmd");
+
+    if !std::path::Path::new("../component/component.winmd").exists() {
+        return;
+    }
+
     windows_bindgen::bindgen([
         "--in",
         "../component/component.winmd",

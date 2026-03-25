@@ -1,4 +1,10 @@
 fn main() {
+    println!("cargo:rerun-if-changed=../overloads/metadata.winmd");
+
+    if !std::path::Path::new("../overloads/metadata.winmd").exists() {
+        return;
+    }
+
     windows_bindgen::bindgen([
         "--in",
         "../overloads/metadata.winmd",
