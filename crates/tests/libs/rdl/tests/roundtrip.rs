@@ -9,21 +9,25 @@ fn roundtrip() {
         .collect();
     paths.sort();
 
-    for path in &paths {
-        let winmd = path.with_extension("winmd");
+    std::thread::scope(|scope| {
+        for path in &paths {
+            scope.spawn(|| {
+                let winmd = path.with_extension("winmd");
 
-        reader()
-            .input(path.to_str().unwrap())
-            .reference("../../../libs/bindgen/default")
-            .output(winmd.to_str().unwrap())
-            .write()
-            .unwrap();
+                reader()
+                    .input(path.to_str().unwrap())
+                    .reference("../../../libs/bindgen/default")
+                    .output(winmd.to_str().unwrap())
+                    .write()
+                    .unwrap();
 
-        writer()
-            .input(winmd.to_str().unwrap())
-            .output(path.to_str().unwrap())
-            .filter("Test")
-            .write()
-            .unwrap();
-    }
+                writer()
+                    .input(winmd.to_str().unwrap())
+                    .output(path.to_str().unwrap())
+                    .filter("Test")
+                    .write()
+                    .unwrap();
+            });
+        }
+    });
 }

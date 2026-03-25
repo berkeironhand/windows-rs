@@ -106,13 +106,11 @@ impl Writer {
 
                 for (_, item) in index.namespace_items(namespace) {
                     for (name, tokens) in write_items(namespace, item) {
-                        layout.insert(namespace, &name, item_winrt(item), tokens.to_string());
+                        layout.insert(namespace, &name, item_winrt(item), tokens);
                     }
                 }
 
-                let output = layout.to_string();
-
-                if output.is_empty() {
+                if !layout.has_content() {
                     continue;
                 }
 
@@ -120,7 +118,10 @@ impl Writer {
                 path.push(&self.output);
                 path.push(format!("{namespace}.rdl"));
 
-                write_to_file(path.to_str().unwrap(), formatter::format(&output));
+                write_to_file(
+                    path.to_str().unwrap(),
+                    formatter::format(layout.to_token_stream()),
+                );
             }
         } else {
             let mut layout = Layout::new();
@@ -132,13 +133,12 @@ impl Writer {
 
                 for (_, item) in index.namespace_items(namespace) {
                     for (name, tokens) in write_items(namespace, item) {
-                        layout.insert(namespace, &name, item_winrt(item), tokens.to_string());
+                        layout.insert(namespace, &name, item_winrt(item), tokens);
                     }
                 }
             }
 
-            let output = layout.to_string();
-            write_to_file(&self.output, formatter::format(&output));
+            write_to_file(&self.output, formatter::format(layout.to_token_stream()));
         }
 
         Ok(())

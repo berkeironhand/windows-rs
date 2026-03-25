@@ -1,8 +1,7 @@
 use proc_macro2::{Delimiter, Group, Spacing, TokenStream, TokenTree};
 
-pub fn format(input: &str) -> String {
-    let stream: TokenStream = input.parse().unwrap_or_default();
-    let tokens: Vec<TokenTree> = stream.into_iter().collect();
+pub fn format(input: TokenStream) -> String {
+    let tokens: Vec<TokenTree> = input.into_iter().collect();
     let mut output = String::new();
     format_seq(&tokens, &mut output, 0, false);
     output
