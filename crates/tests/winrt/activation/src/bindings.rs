@@ -9,7 +9,7 @@
 windows_core::imp::define_interface!(
     IInstance,
     IInstance_Vtbl,
-    0x4cc554b9_8483_54a9_8490_1467dfd7078f
+    0x57172cba_563b_5df0_8cbb_ae400faec3c4
 );
 impl windows_core::RuntimeType for IInstance {
     const SIGNATURE: windows_core::imp::ConstBuffer =
@@ -58,7 +58,7 @@ pub struct IInstance_Vtbl {
 windows_core::imp::define_interface!(
     IMissing,
     IMissing_Vtbl,
-    0xad54a92f_16de_537c_b6c0_5099534ee12e
+    0xf366a81b_9e13_5896_b2fa_0fe325a0a040
 );
 impl windows_core::RuntimeType for IMissing {
     const SIGNATURE: windows_core::imp::ConstBuffer =
@@ -99,7 +99,7 @@ pub struct IMissing_Vtbl {
 windows_core::imp::define_interface!(
     IStaticStatics,
     IStaticStatics_Vtbl,
-    0x530ccab2_1b46_5dba_a8bb_a857df3dc803
+    0xbeeda374_1059_5edc_85c2_54b462e7a44c
 );
 impl windows_core::RuntimeType for IStaticStatics {
     const SIGNATURE: windows_core::imp::ConstBuffer =
@@ -192,8 +192,6 @@ unsafe impl windows_core::Interface for Instance {
 impl windows_core::RuntimeName for Instance {
     const NAME: &'static str = "test_activation.One.Instance";
 }
-unsafe impl Send for Instance {}
-unsafe impl Sync for Instance {}
 #[repr(transparent)]
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Missing(windows_core::IUnknown);
@@ -237,8 +235,6 @@ unsafe impl windows_core::Interface for Missing {
 impl windows_core::RuntimeName for Missing {
     const NAME: &'static str = "test_activation.One.Missing";
 }
-unsafe impl Send for Missing {}
-unsafe impl Sync for Missing {}
 pub struct Static;
 impl Static {
     pub fn Property() -> windows_core::Result<i32> {

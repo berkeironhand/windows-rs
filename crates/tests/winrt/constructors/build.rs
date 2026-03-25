@@ -1,27 +1,17 @@
 fn main() {
-    let mut command = std::process::Command::new("midlrt.exe");
-    command.args([
-        "/winrt",
-        "/nomidl",
-        "/h",
-        "nul",
-        "/metadata_dir",
-        "../../../libs/bindgen/default",
-        "/reference",
-        "../../../libs/bindgen/default/Windows.winmd",
-        "/winmd",
-        "metadata.winmd",
-        "src/metadata.idl",
-    ]);
+    let default = concat!(env!("CARGO_MANIFEST_DIR"), "/../../../libs/bindgen/default");
 
-    if !command.status().unwrap().success() {
-        panic!("Failed to run midlrt");
-    }
+    windows_rdl::reader()
+        .input("src/metadata.rdl")
+        .reference(&format!("{default}/Windows.winmd"))
+        .output("metadata.winmd")
+        .write()
+        .unwrap();
 
     windows_bindgen::bindgen([
         "--in",
         "metadata.winmd",
-        "../../../libs/bindgen/default",
+        default,
         "--out",
         "src/bindings.rs",
         "--filter",

@@ -12,6 +12,9 @@ doctest = false
 [build-dependencies.windows-bindgen]
 workspace = true
 
+[build-dependencies.windows-rdl]
+workspace = true
+
 [dependencies.windows-core]
 workspace = true
 

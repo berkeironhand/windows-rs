@@ -59,8 +59,6 @@ unsafe impl windows_core::Interface for A {
 impl windows_core::RuntimeName for A {
     const NAME: &'static str = "test_overloads.A";
 }
-unsafe impl Send for A {}
-unsafe impl Sync for A {}
 #[repr(transparent)]
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct B(windows_core::IUnknown);
@@ -114,8 +112,6 @@ unsafe impl windows_core::Interface for B {
 impl windows_core::RuntimeName for B {
     const NAME: &'static str = "test_overloads.B";
 }
-unsafe impl Send for B {}
-unsafe impl Sync for B {}
 #[repr(transparent)]
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct C(windows_core::IUnknown);
@@ -169,8 +165,6 @@ unsafe impl windows_core::Interface for C {
 impl windows_core::RuntimeName for C {
     const NAME: &'static str = "test_overloads.C";
 }
-unsafe impl Send for C {}
-unsafe impl Sync for C {}
 #[repr(transparent)]
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct D(windows_core::IUnknown);
@@ -212,7 +206,7 @@ impl D {
             .map(|| result__)
         }
     }
-    pub fn Method3(&self, a: i32, b: i32) -> windows_core::Result<i32> {
+    pub fn Method2(&self, a: i32, b: i32) -> windows_core::Result<i32> {
         let this = &windows_core::Interface::cast::<ID2>(self)?;
         unsafe {
             let mut result__ = core::mem::zeroed();
@@ -225,7 +219,7 @@ impl D {
             .map(|| result__)
         }
     }
-    pub fn Method4(&self, a: i32, b: i32, c: i32) -> windows_core::Result<i32> {
+    pub fn Method22(&self, a: i32, b: i32, c: i32) -> windows_core::Result<i32> {
         let this = &windows_core::Interface::cast::<ID2>(self)?;
         unsafe {
             let mut result__ = core::mem::zeroed();
@@ -251,8 +245,6 @@ unsafe impl windows_core::Interface for D {
 impl windows_core::RuntimeName for D {
     const NAME: &'static str = "test_overloads.D";
 }
-unsafe impl Send for D {}
-unsafe impl Sync for D {}
 #[repr(transparent)]
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct E(windows_core::IUnknown);
@@ -333,9 +325,7 @@ unsafe impl windows_core::Interface for E {
 impl windows_core::RuntimeName for E {
     const NAME: &'static str = "test_overloads.E";
 }
-unsafe impl Send for E {}
-unsafe impl Sync for E {}
-windows_core::imp::define_interface!(IA, IA_Vtbl, 0xea3ed6f8_2f81_5cfc_a281_4bf0d7535521);
+windows_core::imp::define_interface!(IA, IA_Vtbl, 0x717426ad_5b87_5150_b9eb_afc1aba47d33);
 impl windows_core::RuntimeType for IA {
     const SIGNATURE: windows_core::imp::ConstBuffer =
         windows_core::imp::ConstBuffer::for_interface::<Self>();
@@ -401,7 +391,7 @@ pub struct IA_Vtbl {
     pub Method2:
         unsafe extern "system" fn(*mut core::ffi::c_void, i32, *mut i32) -> windows_core::HRESULT,
 }
-windows_core::imp::define_interface!(IB, IB_Vtbl, 0xc6f02ea8_68b6_5a1c_86fe_f8c0c0d655c4);
+windows_core::imp::define_interface!(IB, IB_Vtbl, 0xfb042ee8_11d2_5579_9f9e_b9999bbade86);
 impl windows_core::RuntimeType for IB {
     const SIGNATURE: windows_core::imp::ConstBuffer =
         windows_core::imp::ConstBuffer::for_interface::<Self>();
@@ -467,7 +457,7 @@ pub struct IB_Vtbl {
     pub MethodTwo:
         unsafe extern "system" fn(*mut core::ffi::c_void, i32, *mut i32) -> windows_core::HRESULT,
 }
-windows_core::imp::define_interface!(IC, IC_Vtbl, 0xdf8ad52f_5629_5e9b_a662_5723833b59e5);
+windows_core::imp::define_interface!(IC, IC_Vtbl, 0x38e8d116_8691_5b51_a8fc_dd02c4514f11);
 impl windows_core::RuntimeType for IC {
     const SIGNATURE: windows_core::imp::ConstBuffer =
         windows_core::imp::ConstBuffer::for_interface::<Self>();
@@ -533,7 +523,7 @@ pub struct IC_Vtbl {
     pub Method2:
         unsafe extern "system" fn(*mut core::ffi::c_void, i32, *mut i32) -> windows_core::HRESULT,
 }
-windows_core::imp::define_interface!(ID, ID_Vtbl, 0xa9cf9a9f_9389_5f27_bb69_a094144cad72);
+windows_core::imp::define_interface!(ID, ID_Vtbl, 0xd3c655cf_4f41_585b_8030_fa09a7c2ee3c);
 impl windows_core::RuntimeType for ID {
     const SIGNATURE: windows_core::imp::ConstBuffer =
         windows_core::imp::ConstBuffer::for_interface::<Self>();
@@ -599,7 +589,7 @@ pub struct ID_Vtbl {
     pub Method2:
         unsafe extern "system" fn(*mut core::ffi::c_void, i32, *mut i32) -> windows_core::HRESULT,
 }
-windows_core::imp::define_interface!(ID2, ID2_Vtbl, 0x5cbf6f2f_250f_57a9_82d9_d773fd84fbe9);
+windows_core::imp::define_interface!(ID2, ID2_Vtbl, 0x10d159f0_1fed_5265_8ac4_696932cc3dcd);
 impl windows_core::RuntimeType for ID2 {
     const SIGNATURE: windows_core::imp::ConstBuffer =
         windows_core::imp::ConstBuffer::for_interface::<Self>();
@@ -678,7 +668,7 @@ pub struct ID2_Vtbl {
         *mut i32,
     ) -> windows_core::HRESULT,
 }
-windows_core::imp::define_interface!(IE, IE_Vtbl, 0x179af921_706b_5a49_8624_7889b2eff9c1);
+windows_core::imp::define_interface!(IE, IE_Vtbl, 0x4063974f_ae21_5baa_b96c_60cf059d9450);
 impl windows_core::RuntimeType for IE {
     const SIGNATURE: windows_core::imp::ConstBuffer =
         windows_core::imp::ConstBuffer::for_interface::<Self>();
@@ -744,7 +734,7 @@ pub struct IE_Vtbl {
     pub MethodTwo:
         unsafe extern "system" fn(*mut core::ffi::c_void, i32, *mut i32) -> windows_core::HRESULT,
 }
-windows_core::imp::define_interface!(IE2, IE2_Vtbl, 0x9e8f2cad_09de_5f31_b940_8189d6323a19);
+windows_core::imp::define_interface!(IE2, IE2_Vtbl, 0x26c5ab24_117d_5497_8c18_5d0f86060852);
 impl windows_core::RuntimeType for IE2 {
     const SIGNATURE: windows_core::imp::ConstBuffer =
         windows_core::imp::ConstBuffer::for_interface::<Self>();

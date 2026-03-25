@@ -1,36 +1,19 @@
 fn main() {
-    if !cfg!(target_env = "msvc") {
-        return;
-    }
+    let default = concat!(env!("CARGO_MANIFEST_DIR"), "/../../../libs/bindgen/default");
 
-    println!("cargo:rerun-if-changed=src/test.idl");
-    let metadata_dir = format!("{}\\System32\\WinMetadata", env!("windir"));
-    let mut command = std::process::Command::new("midlrt.exe");
-    println!("cargo:rerun-if-changed=src/interop.cpp");
-    println!("cargo:rustc-link-lib=onecoreuap");
+    println!("cargo:rerun-if-changed=src/test.rdl");
 
-    command.args([
-        "/winrt",
-        "/nomidl",
-        "/h",
-        "nul",
-        "/metadata_dir",
-        &metadata_dir,
-        "/reference",
-        &format!("{metadata_dir}\\Windows.Foundation.winmd"),
-        "/winmd",
-        "test.winmd",
-        "src/test.idl",
-    ]);
-
-    if !command.status().unwrap().success() {
-        panic!("Failed to run midlrt");
-    }
+    windows_rdl::reader()
+        .input("src/test.rdl")
+        .reference(&format!("{default}/Windows.winmd"))
+        .output("test.winmd")
+        .write()
+        .unwrap();
 
     windows_bindgen::bindgen([
         "--in",
         "test.winmd",
-        &metadata_dir,
+        default,
         "--out",
         "src/bindings.rs",
         "--filter",
@@ -41,21 +24,23 @@ fn main() {
     ])
     .unwrap();
 
-    let include = std::env::var("OUT_DIR").unwrap();
+    #[cfg(target_env = "msvc")]
+    {
+        println!("cargo:rerun-if-changed=src/interop.cpp");
+        println!("cargo:rustc-link-lib=onecoreuap");
 
-    cppwinrt::cppwinrt([
-        "-in",
-        "test.winmd",
-        &format!("{}\\System32\\WinMetadata", env!("windir")),
-        "-out",
-        &include,
-    ]);
+        let windir = std::env::var("windir").unwrap();
+        let winmetadata = format!("{windir}\\System32\\WinMetadata");
+        let include = std::env::var("OUT_DIR").unwrap();
 
-    cc::Build::new()
-        .cpp(true)
-        .std("c++20")
-        .flag("/EHsc")
-        .file("src/interop.cpp")
-        .include(include)
-        .compile("interop");
+        cppwinrt::cppwinrt(["-in", "test.winmd", &winmetadata, "-out", &include]);
+
+        cc::Build::new()
+            .cpp(true)
+            .std("c++20")
+            .flag("/EHsc")
+            .file("src/interop.cpp")
+            .include(include)
+            .compile("interop");
+    }
 }

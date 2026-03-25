@@ -1,0 +1,11 @@
+#[winrt]
+mod Test {
+    interface ITest {
+        fn Input(&self, input: ITest) -> i32;
+        fn Output(&self, value: i32, output: &mut ITest);
+        #[special]
+        fn get_Current(&self) -> i32;
+        #[special]
+        fn put_Current(&self, value: i32);
+    }
+}

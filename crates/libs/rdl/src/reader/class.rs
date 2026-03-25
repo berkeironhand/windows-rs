@@ -67,9 +67,12 @@ impl Encoder<'_> {
             self.output.TypeRef("System", "Object")
         };
 
-        let flags = metadata::TypeAttributes::Public
-            | metadata::TypeAttributes::Sealed
-            | metadata::TypeAttributes::WindowsRuntime;
+        let is_unsealed = item.attrs.iter().any(|attr| attr.path().is_ident("unsealed"));
+
+        let mut flags = metadata::TypeAttributes::Public | metadata::TypeAttributes::WindowsRuntime;
+        if !is_unsealed {
+            flags |= metadata::TypeAttributes::Sealed;
+        }
 
         let class = self.output.TypeDef(
             self.namespace,
@@ -81,7 +84,7 @@ impl Encoder<'_> {
         self.encode_attrs(
             metadata::writer::HasAttribute::TypeDef(class),
             &item.attrs,
-            &[],
+            &["unsealed"],
         )?;
 
         for interface in &item.interfaces {

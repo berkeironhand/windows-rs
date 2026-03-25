@@ -1,0 +1,48 @@
+#[winrt]
+mod test_constructors {
+    #[Windows::Foundation::Metadata::ExclusiveTo(Activatable)]
+    interface IActivatable {
+        #[special]
+        fn get_Property(&self) -> i32;
+    }
+
+    #[Windows::Foundation::Metadata::ExclusiveTo(Activatable)]
+    interface IActivatableFactory {
+        fn WithValue(&self, arg: i32) -> Activatable;
+    }
+
+    #[Windows::Foundation::Metadata::Activatable(1)]
+    #[Windows::Foundation::Metadata::Activatable(IActivatableFactory, 1)]
+    class Activatable {
+        #[default]
+        IActivatable,
+    }
+
+    #[Windows::Foundation::Metadata::ExclusiveTo(Composable)]
+    interface IComposable {
+        #[special]
+        fn get_Property(&self) -> i32;
+    }
+
+    #[Windows::Foundation::Metadata::ExclusiveTo(Composable)]
+    interface IComposableFactory {
+        fn CreateInstance(
+            &self,
+            baseInterface: Object,
+            innerInterface: &mut Object,
+        ) -> Composable;
+        fn WithValue(
+            &self,
+            arg: i32,
+            baseInterface: Object,
+            innerInterface: &mut Object,
+        ) -> Composable;
+    }
+
+    #[Windows::Foundation::Metadata::Composable(IComposableFactory, Public, 1)]
+    #[unsealed]
+    class Composable {
+        #[default]
+        IComposable,
+    }
+}

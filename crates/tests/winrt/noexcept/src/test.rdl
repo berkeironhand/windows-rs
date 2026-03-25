@@ -1,0 +1,44 @@
+#[winrt]
+mod Test {
+    interface ITest {
+        fn MethodString(&self, test: String);
+        fn MethodInt32(&self, test: i32);
+        fn MethodTest(&self, test: ITest);
+        #[special]
+        fn get_String(&self) -> String;
+        #[special]
+        fn put_String(&self, value: String);
+        #[special]
+        fn get_Int32(&self) -> i32;
+        #[special]
+        fn put_Int32(&self, value: i32);
+        #[special]
+        fn get_Test(&self) -> ITest;
+        #[special]
+        fn put_Test(&self, value: ITest);
+        #[Windows::Foundation::Metadata::NoException]
+        fn MethodStringN(&self, test: String);
+        #[Windows::Foundation::Metadata::NoException]
+        fn MethodInt32N(&self, test: i32);
+        #[Windows::Foundation::Metadata::NoException]
+        fn MethodTestN(&self, test: ITest);
+        #[special]
+        #[Windows::Foundation::Metadata::NoException]
+        fn get_StringN(&self) -> String;
+        #[special]
+        #[Windows::Foundation::Metadata::NoException]
+        fn put_StringN(&self, value: String);
+        #[special]
+        #[Windows::Foundation::Metadata::NoException]
+        fn get_Int32N(&self) -> i32;
+        #[special]
+        #[Windows::Foundation::Metadata::NoException]
+        fn put_Int32N(&self, value: i32);
+        #[special]
+        #[Windows::Foundation::Metadata::NoException]
+        fn get_TestN(&self) -> ITest;
+        #[special]
+        #[Windows::Foundation::Metadata::NoException]
+        fn put_TestN(&self, value: ITest);
+    }
+}

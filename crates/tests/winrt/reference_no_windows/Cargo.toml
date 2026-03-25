@@ -23,5 +23,8 @@ workspace = true
 [build-dependencies.windows-bindgen]
 workspace = true
 
+[build-dependencies.windows-rdl]
+workspace = true
+
 [lints]
 workspace = true

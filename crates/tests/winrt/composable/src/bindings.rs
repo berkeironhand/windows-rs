@@ -66,8 +66,6 @@ unsafe impl windows_core::Interface for Compositor {
 impl windows_core::RuntimeName for Compositor {
     const NAME: &'static str = "test_composable.Compositor";
 }
-unsafe impl Send for Compositor {}
-unsafe impl Sync for Compositor {}
 #[repr(transparent)]
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ContainerVisual(windows_core::IUnknown);
@@ -113,12 +111,10 @@ unsafe impl windows_core::Interface for ContainerVisual {
 impl windows_core::RuntimeName for ContainerVisual {
     const NAME: &'static str = "test_composable.ContainerVisual";
 }
-unsafe impl Send for ContainerVisual {}
-unsafe impl Sync for ContainerVisual {}
 windows_core::imp::define_interface!(
     ICompositor,
     ICompositor_Vtbl,
-    0xac7b49b8_e092_52ad_8456_48696a5a258e
+    0x1119bd21_cb12_518e_883d_c7edd413422b
 );
 impl windows_core::RuntimeType for ICompositor {
     const SIGNATURE: windows_core::imp::ConstBuffer =
@@ -203,7 +199,7 @@ pub struct ICompositor_Vtbl {
 windows_core::imp::define_interface!(
     IContainerVisual,
     IContainerVisual_Vtbl,
-    0xb8accc46_3ff7_5a24_8247_f5a52e1f5a8d
+    0x64858111_786d_532c_ae1b_f1974cf91162
 );
 impl windows_core::RuntimeType for IContainerVisual {
     const SIGNATURE: windows_core::imp::ConstBuffer =
@@ -277,7 +273,7 @@ pub struct IContainerVisualFactory_Vtbl {
 windows_core::imp::define_interface!(
     ISpriteVisual,
     ISpriteVisual_Vtbl,
-    0x25f23ebe_4cd3_5349_b16d_d88c4d852ea1
+    0x5866056b_c688_561a_800c_e294f632a740
 );
 impl windows_core::RuntimeType for ISpriteVisual {
     const SIGNATURE: windows_core::imp::ConstBuffer =
@@ -321,7 +317,7 @@ pub struct ISpriteVisual_Vtbl {
 windows_core::imp::define_interface!(
     IVisual,
     IVisual_Vtbl,
-    0xce89606a_5b03_5861_af26_9dced3aab7e6
+    0x29b91de2_6486_5e5d_9bb1_056a44503d5a
 );
 impl windows_core::RuntimeType for IVisual {
     const SIGNATURE: windows_core::imp::ConstBuffer =
@@ -455,8 +451,6 @@ unsafe impl windows_core::Interface for SpriteVisual {
 impl windows_core::RuntimeName for SpriteVisual {
     const NAME: &'static str = "test_composable.SpriteVisual";
 }
-unsafe impl Send for SpriteVisual {}
-unsafe impl Sync for SpriteVisual {}
 #[repr(transparent)]
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Visual(windows_core::IUnknown);
@@ -485,5 +479,3 @@ unsafe impl windows_core::Interface for Visual {
 impl windows_core::RuntimeName for Visual {
     const NAME: &'static str = "test_composable.Visual";
 }
-unsafe impl Send for Visual {}
-unsafe impl Sync for Visual {}

@@ -6,7 +6,7 @@
     clippy::all
 )]
 
-windows_core::imp::define_interface!(ITest, ITest_Vtbl, 0xaa1cc4e9_4780_5808_b172_2ef6449e2ba4);
+windows_core::imp::define_interface!(ITest, ITest_Vtbl, 0x2be8f3f3_7e17_5450_a4dc_d81da397b618);
 impl windows_core::RuntimeType for ITest {
     const SIGNATURE: windows_core::imp::ConstBuffer =
         windows_core::imp::ConstBuffer::for_interface::<Self>();

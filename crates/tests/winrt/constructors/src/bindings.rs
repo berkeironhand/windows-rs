@@ -71,8 +71,6 @@ unsafe impl windows_core::Interface for Activatable {
 impl windows_core::RuntimeName for Activatable {
     const NAME: &'static str = "test_constructors.Activatable";
 }
-unsafe impl Send for Activatable {}
-unsafe impl Sync for Activatable {}
 #[repr(transparent)]
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Composable(windows_core::IUnknown);
@@ -137,12 +135,10 @@ unsafe impl windows_core::Interface for Composable {
 impl windows_core::RuntimeName for Composable {
     const NAME: &'static str = "test_constructors.Composable";
 }
-unsafe impl Send for Composable {}
-unsafe impl Sync for Composable {}
 windows_core::imp::define_interface!(
     IActivatable,
     IActivatable_Vtbl,
-    0xe566522b_9c26_582b_950d_177b05d36efd
+    0x44dd15bd_4046_5a4a_ba07_c10b341040a6
 );
 impl windows_core::RuntimeType for IActivatable {
     const SIGNATURE: windows_core::imp::ConstBuffer =
@@ -191,7 +187,7 @@ pub struct IActivatable_Vtbl {
 windows_core::imp::define_interface!(
     IActivatableFactory,
     IActivatableFactory_Vtbl,
-    0xafc5aee9_aa78_5da6_85a2_69e67b45c620
+    0xcdb449e6_bf37_5f50_9fd1_3f43cfe4c731
 );
 impl windows_core::RuntimeType for IActivatableFactory {
     const SIGNATURE: windows_core::imp::ConstBuffer =
@@ -248,7 +244,7 @@ pub struct IActivatableFactory_Vtbl {
 windows_core::imp::define_interface!(
     IComposable,
     IComposable_Vtbl,
-    0xff2595d6_461d_5118_9296_f2a2b1e64544
+    0x2cba3f73_1221_5275_b136_f22c5e16b575
 );
 impl windows_core::RuntimeType for IComposable {
     const SIGNATURE: windows_core::imp::ConstBuffer =
@@ -297,7 +293,7 @@ pub struct IComposable_Vtbl {
 windows_core::imp::define_interface!(
     IComposableFactory,
     IComposableFactory_Vtbl,
-    0x6a461099_83c0_5810_9e20_2e8b9521d143
+    0x5490f60a_4aab_5305_8bbc_4644b71b616e
 );
 impl windows_core::RuntimeType for IComposableFactory {
     const SIGNATURE: windows_core::imp::ConstBuffer =

@@ -1,0 +1,82 @@
+#[winrt]
+mod test_overloads {
+    #[Windows::Foundation::Metadata::ExclusiveTo(A)]
+    interface IA {
+        fn Method(&self) -> i32;
+        fn Method2(&self, a: i32) -> i32;
+    }
+
+    #[Windows::Foundation::Metadata::ExclusiveTo(B)]
+    interface IB {
+        #[Windows::Foundation::Metadata::Overload("MethodOne")]
+        fn MethodOne(&self) -> i32;
+        #[Windows::Foundation::Metadata::Overload("MethodTwo")]
+        fn MethodTwo(&self, a: i32) -> i32;
+    }
+
+    #[Windows::Foundation::Metadata::ExclusiveTo(C)]
+    interface IC {
+        fn Method(&self) -> i32;
+        fn Method2(&self, a: i32) -> i32;
+    }
+
+    #[Windows::Foundation::Metadata::ExclusiveTo(D)]
+    interface ID {
+        fn Method(&self) -> i32;
+        fn Method2(&self, a: i32) -> i32;
+    }
+
+    #[Windows::Foundation::Metadata::ExclusiveTo(D)]
+    interface ID2 {
+        fn Method(&self, a: i32, b: i32) -> i32;
+        fn Method2(&self, a: i32, b: i32, c: i32) -> i32;
+    }
+
+    #[Windows::Foundation::Metadata::ExclusiveTo(E)]
+    interface IE {
+        #[Windows::Foundation::Metadata::Overload("MethodOne")]
+        fn MethodOne(&self) -> i32;
+        #[Windows::Foundation::Metadata::Overload("MethodTwo")]
+        fn MethodTwo(&self, a: i32) -> i32;
+    }
+
+    #[Windows::Foundation::Metadata::ExclusiveTo(E)]
+    interface IE2 {
+        #[Windows::Foundation::Metadata::Overload("MethodThree")]
+        fn MethodThree(&self, a: i32, b: i32) -> i32;
+        #[Windows::Foundation::Metadata::Overload("MethodFour")]
+        fn MethodFour(&self, a: i32, b: i32, c: i32) -> i32;
+    }
+
+    #[Windows::Foundation::Metadata::Activatable(1)]
+    class A {
+        #[default]
+        IA,
+    }
+
+    #[Windows::Foundation::Metadata::Activatable(1)]
+    class B {
+        #[default]
+        IB,
+    }
+
+    #[Windows::Foundation::Metadata::Activatable(1)]
+    class C {
+        #[default]
+        IC,
+    }
+
+    #[Windows::Foundation::Metadata::Activatable(1)]
+    class D {
+        #[default]
+        ID,
+        ID2,
+    }
+
+    #[Windows::Foundation::Metadata::Activatable(1)]
+    class E {
+        #[default]
+        IE,
+        IE2,
+    }
+}

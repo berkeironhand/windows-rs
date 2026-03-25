@@ -14,6 +14,9 @@ workspace = true
 [build-dependencies.windows-bindgen]
 workspace = true
 
+[build-dependencies.windows-rdl]
+workspace = true
+
 [build-dependencies]
 cc = "1.0"
 

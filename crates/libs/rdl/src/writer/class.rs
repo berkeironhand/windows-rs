@@ -18,7 +18,18 @@ pub fn write_class(item: &metadata::reader::TypeDef) -> TokenStream {
         .interface_impls()
         .map(|imp| write_interface(namespace, &imp));
 
+    let unsealed = if item
+        .flags()
+        .contains(metadata::TypeAttributes::WindowsRuntime)
+        && !item.flags().contains(metadata::TypeAttributes::Sealed)
+    {
+        quote! { #[unsealed] }
+    } else {
+        quote! {}
+    };
+
     quote! {
+        #unsealed
         #(#custom_attrs)*
         class #name #extends {
             #(#interfaces)*

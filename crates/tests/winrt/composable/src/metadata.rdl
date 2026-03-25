@@ -1,0 +1,58 @@
+#[winrt]
+mod test_composable {
+    #[Windows::Foundation::Metadata::ExclusiveTo(Compositor)]
+    interface ICompositor {
+        fn CreateSpriteVisual(&self, brush: i32) -> SpriteVisual;
+        fn CreateContainerVisual(&self, children: i32) -> ContainerVisual;
+    }
+
+    #[Windows::Foundation::Metadata::ExclusiveTo(Visual)]
+    interface IVisual {
+        fn Compositor(&self) -> Compositor;
+    }
+
+    #[Windows::Foundation::Metadata::ExclusiveTo(Visual)]
+    interface IVisualFactory {}
+
+    #[Windows::Foundation::Metadata::ExclusiveTo(ContainerVisual)]
+    interface IContainerVisual {
+        #[special]
+        #[Windows::Foundation::Metadata::NoException]
+        fn get_Children(&self) -> i32;
+    }
+
+    #[Windows::Foundation::Metadata::ExclusiveTo(ContainerVisual)]
+    interface IContainerVisualFactory {}
+
+    #[Windows::Foundation::Metadata::ExclusiveTo(SpriteVisual)]
+    interface ISpriteVisual {
+        #[special]
+        #[Windows::Foundation::Metadata::NoException]
+        fn get_Brush(&self) -> i32;
+    }
+
+    #[Windows::Foundation::Metadata::Activatable(1)]
+    class Compositor {
+        #[default]
+        ICompositor,
+    }
+
+    #[Windows::Foundation::Metadata::Composable(IVisualFactory, Protected, 1)]
+    #[unsealed]
+    class Visual {
+        #[default]
+        IVisual,
+    }
+
+    #[Windows::Foundation::Metadata::Composable(IContainerVisualFactory, Protected, 1)]
+    #[unsealed]
+    class ContainerVisual: Visual {
+        #[default]
+        IContainerVisual,
+    }
+
+    class SpriteVisual: ContainerVisual {
+        #[default]
+        ISpriteVisual,
+    }
+}

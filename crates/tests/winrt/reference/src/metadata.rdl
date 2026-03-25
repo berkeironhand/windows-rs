@@ -1,0 +1,13 @@
+#[winrt]
+mod test_reference {
+    #[Windows::Foundation::Metadata::ExclusiveTo(Reference)]
+    interface IReference {
+        fn Method(&self, stringable: Windows::Foundation::IStringable) -> String;
+    }
+
+    #[Windows::Foundation::Metadata::Activatable(1)]
+    class Reference: Windows::Foundation::IStringable {
+        #[default]
+        IReference,
+    }
+}

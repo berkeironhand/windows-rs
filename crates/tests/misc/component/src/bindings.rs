@@ -9,7 +9,7 @@
 windows_core::imp::define_interface!(
     Callback,
     Callback_Vtbl,
-    0xe39afc7e_93f1_5a1d_92ef_bd5f71c62cb8
+    0x6409d8e9_9036_5ab4_8bd2_2a70a050428b
 );
 impl windows_core::RuntimeType for Callback {
     const SIGNATURE: windows_core::imp::ConstBuffer =
@@ -180,8 +180,8 @@ impl Class {
     pub fn Int32Array(
         &self,
         a: &[i32],
-        b: &mut [i32],
-        c: &mut windows_core::Array<i32>,
+        b: &mut windows_core::Array<i32>,
+        c: &mut [i32],
     ) -> windows_core::Result<windows_core::Array<i32>> {
         let this = self;
         unsafe {
@@ -190,10 +190,10 @@ impl Class {
                 windows_core::Interface::as_raw(this),
                 a.len().try_into().unwrap(),
                 a.as_ptr(),
-                b.len().try_into().unwrap(),
-                b.as_mut_ptr(),
-                c.set_abi_len(),
-                c as *mut _ as _,
+                b.set_abi_len(),
+                b as *mut _ as _,
+                c.len().try_into().unwrap(),
+                c.as_mut_ptr(),
                 windows_core::Array::<i32>::set_abi_len(core::mem::transmute(&mut result__)),
                 result__.as_mut_ptr() as *mut _ as _,
             )
@@ -203,8 +203,8 @@ impl Class {
     pub fn StringArray(
         &self,
         a: &[windows_core::HSTRING],
-        b: &mut [windows_core::HSTRING],
-        c: &mut windows_core::Array<windows_core::HSTRING>,
+        b: &mut windows_core::Array<windows_core::HSTRING>,
+        c: &mut [windows_core::HSTRING],
     ) -> windows_core::Result<windows_core::Array<windows_core::HSTRING>> {
         let this = self;
         unsafe {
@@ -213,10 +213,10 @@ impl Class {
                 windows_core::Interface::as_raw(this),
                 a.len().try_into().unwrap(),
                 core::mem::transmute(a.as_ptr()),
-                b.len().try_into().unwrap(),
-                core::mem::transmute_copy(&b),
-                c.set_abi_len(),
-                c as *mut _ as _,
+                b.set_abi_len(),
+                b as *mut _ as _,
+                c.len().try_into().unwrap(),
+                core::mem::transmute_copy(&c),
                 windows_core::Array::<windows_core::HSTRING>::set_abi_len(core::mem::transmute(
                     &mut result__,
                 )),
@@ -256,8 +256,6 @@ unsafe impl windows_core::Interface for Class {
 impl windows_core::RuntimeName for Class {
     const NAME: &'static str = "test_component.Class";
 }
-unsafe impl Send for Class {}
-unsafe impl Sync for Class {}
 #[repr(transparent)]
 #[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
 pub struct Flags(pub u32);
@@ -304,7 +302,7 @@ impl core::ops::Not for Flags {
         Self(self.0.not())
     }
 }
-windows_core::imp::define_interface!(IClass, IClass_Vtbl, 0x97540591_1323_59c0_9ae0_f510cae62e54);
+windows_core::imp::define_interface!(IClass, IClass_Vtbl, 0x23e26fbc_c8c0_53cc_8082_a9a412d4be7f);
 impl windows_core::RuntimeType for IClass {
     const SIGNATURE: windows_core::imp::ConstBuffer =
         windows_core::imp::ConstBuffer::for_interface::<Self>();
@@ -319,14 +317,14 @@ pub trait IClass_Impl: windows_core::IUnknownImpl {
     fn Int32Array(
         &self,
         a: &[i32],
-        b: &mut [i32],
-        c: &mut windows_core::Array<i32>,
+        b: &mut windows_core::Array<i32>,
+        c: &mut [i32],
     ) -> windows_core::Result<windows_core::Array<i32>>;
     fn StringArray(
         &self,
         a: &[windows_core::HSTRING],
-        b: &mut [windows_core::HSTRING],
-        c: &mut windows_core::Array<windows_core::HSTRING>,
+        b: &mut windows_core::Array<windows_core::HSTRING>,
+        c: &mut [windows_core::HSTRING],
     ) -> windows_core::Result<windows_core::Array<windows_core::HSTRING>>;
     fn Input(
         &self,
@@ -384,10 +382,10 @@ impl IClass_Vtbl {
             this: *mut core::ffi::c_void,
             a_array_size: u32,
             a: *const i32,
-            b_array_size: u32,
-            b: *mut i32,
-            c_array_size: *mut u32,
-            c: *mut *mut i32,
+            b_array_size: *mut u32,
+            b: *mut *mut i32,
+            c_array_size: u32,
+            c: *mut i32,
             result_size__: *mut u32,
             result__: *mut *mut i32,
         ) -> windows_core::HRESULT {
@@ -400,13 +398,13 @@ impl IClass_Vtbl {
                         core::mem::transmute_copy(&a),
                         a_array_size as usize,
                     ),
-                    core::slice::from_raw_parts_mut(
-                        core::mem::transmute_copy(&b),
-                        b_array_size as usize,
-                    ),
                     &mut windows_core::imp::array_proxy(
+                        core::mem::transmute_copy(&b),
+                        b_array_size,
+                    ),
+                    core::slice::from_raw_parts_mut(
                         core::mem::transmute_copy(&c),
-                        c_array_size,
+                        c_array_size as usize,
                     ),
                 ) {
                     Ok(ok__) => {
@@ -423,10 +421,10 @@ impl IClass_Vtbl {
             this: *mut core::ffi::c_void,
             a_array_size: u32,
             a: *const windows_core::HSTRING,
-            b_array_size: u32,
-            b: *mut windows_core::HSTRING,
-            c_array_size: *mut u32,
-            c: *mut *mut windows_core::HSTRING,
+            b_array_size: *mut u32,
+            b: *mut *mut windows_core::HSTRING,
+            c_array_size: u32,
+            c: *mut windows_core::HSTRING,
             result_size__: *mut u32,
             result__: *mut *mut *mut core::ffi::c_void,
         ) -> windows_core::HRESULT {
@@ -439,13 +437,13 @@ impl IClass_Vtbl {
                         core::mem::transmute_copy(&a),
                         a_array_size as usize,
                     ),
-                    core::slice::from_raw_parts_mut(
-                        core::mem::transmute_copy(&b),
-                        b_array_size as usize,
-                    ),
                     &mut windows_core::imp::array_proxy(
+                        core::mem::transmute_copy(&b),
+                        b_array_size,
+                    ),
+                    core::slice::from_raw_parts_mut(
                         core::mem::transmute_copy(&c),
-                        c_array_size,
+                        c_array_size as usize,
                     ),
                 ) {
                     Ok(ok__) => {
@@ -506,10 +504,10 @@ pub struct IClass_Vtbl {
         *mut core::ffi::c_void,
         u32,
         *const i32,
-        u32,
-        *mut i32,
         *mut u32,
         *mut *mut i32,
+        u32,
+        *mut i32,
         *mut u32,
         *mut *mut i32,
     ) -> windows_core::HRESULT,
@@ -517,10 +515,10 @@ pub struct IClass_Vtbl {
         *mut core::ffi::c_void,
         u32,
         *const windows_core::HSTRING,
-        u32,
-        *mut windows_core::HSTRING,
         *mut u32,
         *mut *mut windows_core::HSTRING,
+        u32,
+        *mut windows_core::HSTRING,
         *mut u32,
         *mut *mut *mut core::ffi::c_void,
     ) -> windows_core::HRESULT,
@@ -532,7 +530,7 @@ pub struct IClass_Vtbl {
         *mut core::ffi::c_void,
     ) -> windows_core::HRESULT,
 }
-windows_core::imp::define_interface!(IThing, IThing_Vtbl, 0x5448be22_9873_5ae6_9106_f6e8455d2fdd);
+windows_core::imp::define_interface!(IThing, IThing_Vtbl, 0xa9039ba1_6caf_5414_86e1_32e1c05a6c12);
 impl windows_core::RuntimeType for IThing {
     const SIGNATURE: windows_core::imp::ConstBuffer =
         windows_core::imp::ConstBuffer::for_interface::<Self>();

@@ -1,0 +1,6 @@
+#[winrt]
+mod test_reference_float {
+    struct RefWithFloat {
+        Value: Windows::Foundation::IReference<f32>,
+    }
+}
