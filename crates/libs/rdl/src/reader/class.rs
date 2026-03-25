@@ -67,7 +67,10 @@ impl Encoder<'_> {
             self.output.TypeRef("System", "Object")
         };
 
-        let is_unsealed = item.attrs.iter().any(|attr| attr.path().is_ident("unsealed"));
+        let is_unsealed = item
+            .attrs
+            .iter()
+            .any(|attr| attr.path().is_ident("unsealed"));
 
         let mut flags = metadata::TypeAttributes::Public | metadata::TypeAttributes::WindowsRuntime;
         if !is_unsealed {
