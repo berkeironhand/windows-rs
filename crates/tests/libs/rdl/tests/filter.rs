@@ -1,3 +1,5 @@
+use std::sync::atomic::{AtomicU32, Ordering};
+use std::sync::OnceLock;
 use windows_rdl::*;
 
 const INPUT: &str = r#"
@@ -15,69 +17,124 @@ mod Test {
 }
 "#;
 
-fn make_winmd(name: &str) -> std::path::PathBuf {
-    let path = std::env::temp_dir().join(format!("windows_rdl_filter_{name}.winmd"));
-    reader()
-        .input_str(INPUT)
-        .output(&path.to_string_lossy())
-        .write()
-        .unwrap();
-    path
+fn input_winmd() -> &'static std::path::Path {
+    static WINMD: OnceLock<std::path::PathBuf> = OnceLock::new();
+    WINMD.get_or_init(|| {
+        let path = std::env::temp_dir().join("windows_rdl_filter_input.winmd");
+        reader()
+            .input_str(INPUT)
+            .output(&path.to_string_lossy())
+            .write()
+            .unwrap();
+        path
+    })
+}
+
+fn filter(filters: &[&str], expected: &str) {
+    static COUNTER: AtomicU32 = AtomicU32::new(0);
+    let id = COUNTER.fetch_add(1, Ordering::Relaxed);
+    let rdl = std::env::temp_dir().join(format!("windows_rdl_filter_{id}.rdl"));
+
+    let winmd = input_winmd();
+    let mut w = writer();
+    w.input(&winmd.to_string_lossy())
+        .output(&rdl.to_string_lossy());
+    for f in filters {
+        w.filter(f);
+    }
+    w.write().unwrap();
+
+    let actual = std::fs::read_to_string(&rdl).unwrap();
+    assert_eq!(actual.trim(), expected.trim());
 }
 
 #[test]
 fn filter_namespace() {
-    let winmd = make_winmd("namespace");
-    let rdl = std::env::temp_dir().join("windows_rdl_filter_namespace.rdl");
-
-    writer()
-        .input(&winmd.to_string_lossy())
-        .output(&rdl.to_string_lossy())
-        .filter("Test")
-        .write()
-        .unwrap();
-
-    let contents = std::fs::read_to_string(&rdl).unwrap();
-    assert!(contents.contains("Color"), "Expected Color:\n{contents}");
-    assert!(contents.contains("Point"), "Expected Point:\n{contents}");
+    filter(
+        &["Test"],
+        r#"
+#[win32]
+mod Test {
+    struct Color {
+        R: u8,
+        G: u8,
+        B: u8,
+    }
+    struct Point {
+        X: i32,
+        Y: i32,
+    }
+}
+"#,
+    );
 }
 
 #[test]
 fn filter_unqualified_type() {
-    let winmd = make_winmd("unqualified");
-    let rdl = std::env::temp_dir().join("windows_rdl_filter_unqualified.rdl");
-
-    writer()
-        .input(&winmd.to_string_lossy())
-        .output(&rdl.to_string_lossy())
-        .filter("Color")
-        .write()
-        .unwrap();
-
-    let contents = std::fs::read_to_string(&rdl).unwrap();
-    assert!(contents.contains("Color"), "Expected Color:\n{contents}");
-    assert!(
-        !contents.contains("Point"),
-        "Expected no Point:\n{contents}"
+    filter(
+        &["Color"],
+        r#"
+#[win32]
+mod Test {
+    struct Color {
+        R: u8,
+        G: u8,
+        B: u8,
+    }
+}
+"#,
     );
 }
 
 #[test]
 fn filter_qualified_type() {
-    let winmd = make_winmd("qualified");
-    let rdl = std::env::temp_dir().join("windows_rdl_filter_qualified.rdl");
+    filter(
+        &["Test.Point"],
+        r#"
+#[win32]
+mod Test {
+    struct Point {
+        X: i32,
+        Y: i32,
+    }
+}
+"#,
+    );
+}
 
-    writer()
-        .input(&winmd.to_string_lossy())
-        .output(&rdl.to_string_lossy())
-        .filter("Test.Point")
-        .write()
-        .unwrap();
+#[test]
+fn filter_multiple_types() {
+    filter(
+        &["Test.Color", "Test.Point"],
+        r#"
+#[win32]
+mod Test {
+    struct Color {
+        R: u8,
+        G: u8,
+        B: u8,
+    }
+    struct Point {
+        X: i32,
+        Y: i32,
+    }
+}
+"#,
+    );
+}
 
-    let contents = std::fs::read_to_string(&rdl).unwrap();
-    assert!(contents.contains("Point"), "Expected Point:\n{contents}");
-    assert!(
-        !contents.contains("Color"),
-        "Expected no Color:\n{contents}"
+#[test]
+fn filter_exclude_type() {
+    filter(
+        &["Test", "!Test.Color"],
+        r#"
+#[win32]
+mod Test {
+    struct Point {
+        X: i32,
+        Y: i32,
+    }
+}
+"#,
     );
 }
