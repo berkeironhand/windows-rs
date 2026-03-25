@@ -18,7 +18,7 @@ pub struct File {
     strings: Strings,
     blobs: Blobs,
     records: rec::Records,
-    reference: Option<crate::reader::TypeIndex>,
+    reference: Option<std::sync::Arc<crate::reader::TypeIndex>>,
 
     // Indexes for fast lookup of preexisting rows.
     TypeRef: HashMap<String, HashMap<String, id::TypeRef>>,
@@ -68,13 +68,13 @@ impl File {
 
     /// Sets the reference `TypeIndex` used to resolve whether a `TypeRef` refers to a type
     /// defined locally in this file or in an external assembly.
-    pub fn set_reference(&mut self, reference: crate::reader::TypeIndex) {
+    pub fn set_reference(&mut self, reference: std::sync::Arc<crate::reader::TypeIndex>) {
         self.reference = Some(reference);
     }
 
     /// Returns the reference `TypeIndex`, if one has been set via [`Self::set_reference`].
     pub fn reference(&self) -> Option<&crate::reader::TypeIndex> {
-        self.reference.as_ref()
+        self.reference.as_deref()
     }
 
     fn ModuleRef(&mut self, name: &str) -> id::ModuleRef {

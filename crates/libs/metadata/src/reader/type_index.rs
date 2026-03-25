@@ -1,5 +1,6 @@
 use super::*;
 
+#[derive(Clone)]
 pub struct TypeIndex {
     files: Vec<File>,
     types: HashMap<String, HashMap<String, Vec<(usize, usize)>>>,

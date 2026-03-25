@@ -1,7 +1,11 @@
 use super::*;
+use std::sync::{Arc, Mutex, OnceLock};
 
+static FILE_BYTES_CACHE: OnceLock<Mutex<HashMap<std::path::PathBuf, Arc<[u8]>>>> = OnceLock::new();
+
+#[derive(Clone)]
 pub struct File {
-    bytes: Vec<u8>,
+    bytes: Arc<[u8]>,
     strings: usize,
     blobs: usize,
     tables: [Table; 18],
@@ -9,10 +13,29 @@ pub struct File {
 
 impl File {
     pub fn read<P: AsRef<std::path::Path>>(path: P) -> Option<Self> {
-        std::fs::read(path).ok().and_then(Self::new)
+        let path = path.as_ref();
+        let canonical = path.canonicalize().ok()?;
+        let cache = FILE_BYTES_CACHE.get_or_init(|| Mutex::new(HashMap::new()));
+        let bytes = {
+            let mut guard = cache
+                .lock()
+                .expect("FILE_BYTES_CACHE poisoned by a prior panic; restart the process");
+            if let Some(bytes) = guard.get(&canonical) {
+                bytes.clone()
+            } else {
+                let bytes: Arc<[u8]> = std::fs::read(path).ok()?.into();
+                guard.insert(canonical, bytes.clone());
+                bytes
+            }
+        };
+        Self::from_arc(bytes)
     }
 
     pub fn new(bytes: Vec<u8>) -> Option<Self> {
+        Self::from_arc(bytes.into())
+    }
+
+    fn from_arc(bytes: Arc<[u8]>) -> Option<Self> {
         let mut result = File {
             bytes,
             strings: 0,
@@ -715,7 +738,7 @@ impl View for [u8] {
     }
 }
 
-#[derive(Default)]
+#[derive(Clone, Default)]
 struct Table {
     offset: usize,
     len: usize,
@@ -761,7 +784,7 @@ impl Table {
     }
 }
 
-#[derive(Default)]
+#[derive(Clone, Default)]
 struct Column {
     offset: usize,
     width: usize,

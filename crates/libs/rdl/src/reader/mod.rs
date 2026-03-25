@@ -42,6 +42,7 @@ pub struct Reader {
     input: Vec<String>,
     input_str: Vec<String>,
     reference: Vec<String>,
+    reference_index: Option<std::sync::Arc<metadata::reader::TypeIndex>>,
     output: String,
 }
 
@@ -67,6 +68,17 @@ impl Reader {
         self
     }
 
+    /// Sets a pre-built reference [`TypeIndex`] to use instead of loading reference files
+    /// from disk. This avoids the overhead of repeatedly parsing the same large winmd files
+    /// when calling [`Reader::write`] in a loop.
+    pub fn reference_index(
+        &mut self,
+        index: std::sync::Arc<metadata::reader::TypeIndex>,
+    ) -> &mut Self {
+        self.reference_index = Some(index);
+        self
+    }
+
     pub fn output(&mut self, output: &str) -> &mut Self {
         self.output = output.to_string();
         self
@@ -87,17 +99,22 @@ impl Reader {
             }
         }
 
-        let reference_paths = expand_files(&self.reference, "winmd")?;
-        let mut reference = vec![];
+        let reference = if let Some(index) = &self.reference_index {
+            std::sync::Arc::clone(index)
+        } else {
+            let reference_paths = expand_files(&self.reference, "winmd")?;
+            let mut files = vec![];
 
-        for file_name in &reference_paths {
-            reference.push(
-                metadata::reader::File::read(file_name)
-                    .ok_or_else(|| Error::new("invalid reference", file_name, 0, 0))?,
-            );
-        }
+            for file_name in &reference_paths {
+                files.push(
+                    metadata::reader::File::read(file_name)
+                        .ok_or_else(|| Error::new("invalid reference", file_name, 0, 0))?,
+                );
+            }
 
-        let reference = metadata::reader::TypeIndex::new(reference);
+            std::sync::Arc::new(metadata::reader::TypeIndex::new(files))
+        };
+
         validate_use_declarations(&input, &index, &reference)?;
 
         let assembly_name = std::path::Path::new(&self.output)
