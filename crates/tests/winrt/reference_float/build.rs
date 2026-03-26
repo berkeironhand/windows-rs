@@ -1,4 +1,6 @@
 fn main() {
+    println!("cargo:rerun-if-changed=src/metadata.idl");
+
     let mut command = std::process::Command::new("midlrt.exe");
     command.args([
         "/winrt",
@@ -18,7 +20,7 @@ fn main() {
         panic!("Failed to run midlrt");
     }
 
-    _ = windows_bindgen::bindgen([
+    windows_bindgen::bindgen([
         "--in",
         "metadata.winmd",
         "../../../libs/bindgen/default",
@@ -29,5 +31,6 @@ fn main() {
         "--implement",
         "--no-comment",
         "--flat",
-    ]);
+    ])
+    .unwrap();
 }

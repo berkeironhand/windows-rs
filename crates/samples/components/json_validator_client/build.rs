@@ -1,5 +1,5 @@
 fn main() {
-    if !cfg!(target_env = "msvc") {
+    if std::env::var("CARGO_CFG_TARGET_ENV").unwrap() != "msvc" {
         return;
     }
 

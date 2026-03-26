@@ -3,7 +3,7 @@ fn main() {
 
     let windows_foundation = format!(
         "{}\\System32\\WinMetadata\\Windows.Foundation.winmd",
-        env!("windir")
+        std::env::var("WINDIR").unwrap()
     );
 
     windows_rdl::reader()

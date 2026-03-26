@@ -20,7 +20,7 @@ fn main() {
         panic!("Failed to run midlrt");
     }
 
-    _ = windows_bindgen::bindgen([
+    windows_bindgen::bindgen([
         "--in",
         "default",
         "test.winmd",
@@ -37,5 +37,6 @@ fn main() {
         "--no-deps",
         "--reference",
         "windows,skip-root,Windows.Foundation.IStringable",
-    ]);
+    ])
+    .unwrap();
 }

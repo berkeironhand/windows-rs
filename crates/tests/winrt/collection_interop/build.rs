@@ -1,10 +1,13 @@
 fn main() {
-    if !cfg!(target_env = "msvc") {
+    if std::env::var("CARGO_CFG_TARGET_ENV").unwrap() != "msvc" {
         return;
     }
 
     println!("cargo:rerun-if-changed=src/test.idl");
-    let metadata_dir = format!("{}\\System32\\WinMetadata", env!("windir"));
+    let metadata_dir = format!(
+        "{}\\System32\\WinMetadata",
+        std::env::var("WINDIR").unwrap()
+    );
     let mut command = std::process::Command::new("midlrt.exe");
     println!("cargo:rerun-if-changed=src/interop.cpp");
     println!("cargo:rustc-link-lib=onecoreuap");
@@ -45,13 +48,7 @@ fn main() {
 
     let include = std::env::var("OUT_DIR").unwrap();
 
-    cppwinrt::cppwinrt([
-        "-in",
-        "test.winmd",
-        &format!("{}\\System32\\WinMetadata", env!("windir")),
-        "-out",
-        &include,
-    ]);
+    cppwinrt::cppwinrt(["-in", "test.winmd", &metadata_dir, "-out", &include]);
 
     cc::Build::new()
         .cpp(true)

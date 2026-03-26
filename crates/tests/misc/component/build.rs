@@ -1,6 +1,9 @@
 fn main() {
     println!("cargo:rerun-if-changed=src/component.idl");
-    let metadata_dir = format!("{}\\System32\\WinMetadata", env!("windir"));
+    let metadata_dir = format!(
+        "{}\\System32\\WinMetadata",
+        std::env::var("WINDIR").unwrap()
+    );
 
     let mut command = std::process::Command::new("midlrt.exe");
     command

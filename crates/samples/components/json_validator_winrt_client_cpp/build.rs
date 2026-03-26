@@ -1,5 +1,5 @@
 fn main() {
-    if !cfg!(target_env = "msvc") {
+    if std::env::var("CARGO_CFG_TARGET_ENV").unwrap() != "msvc" {
         return;
     }
 
@@ -11,7 +11,10 @@ fn main() {
     cppwinrt::cppwinrt([
         "-in",
         "../json_validator_winrt/sample.winmd",
-        &format!("{}\\System32\\WinMetadata", env!("windir")),
+        &format!(
+            "{}\\System32\\WinMetadata",
+            std::env::var("WINDIR").unwrap()
+        ),
         "-out",
         &include,
     ]);
