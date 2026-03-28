@@ -1,4 +1,5 @@
 fn main() {
+    #[cfg(windows)]
     windows_bindgen::bindgen([
         "--in",
         "../activation/metadata.winmd",
