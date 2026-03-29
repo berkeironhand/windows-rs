@@ -9,7 +9,7 @@ fn main() {
         cppwinrt::cppwinrt([
             "-in",
             "../json_validator_winrt/sample.winmd",
-            &format!("{}\\System32\\WinMetadata", env!("windir")),
+            "../../../libs/bindgen/default",
             "-out",
             &include,
         ]);

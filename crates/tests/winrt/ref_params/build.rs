@@ -2,10 +2,10 @@ fn main() {
     #[cfg(windows)]
     {
         println!("cargo:rerun-if-changed=src/test.idl");
-        let metadata_dir = format!("{}\\System32\\WinMetadata", env!("windir"));
-        let mut command = std::process::Command::new("midlrt.exe");
         println!("cargo:rerun-if-changed=src/interop.cpp");
         println!("cargo:rustc-link-lib=onecoreuap");
+
+        let mut command = std::process::Command::new("midlrt.exe");
 
         command.args([
             "/winrt",
@@ -13,9 +13,9 @@ fn main() {
             "/h",
             "nul",
             "/metadata_dir",
-            &metadata_dir,
+            "../../../libs/bindgen/default",
             "/reference",
-            &format!("{metadata_dir}\\Windows.Foundation.winmd"),
+            "../../../libs/bindgen/default/Windows.winmd",
             "/winmd",
             "test.winmd",
             "src/test.idl",
@@ -28,7 +28,7 @@ fn main() {
         windows_bindgen::bindgen([
             "--in",
             "test.winmd",
-            &metadata_dir,
+            "../../../libs/bindgen/default",
             "--out",
             "src/bindings.rs",
             "--filter",
@@ -44,7 +44,7 @@ fn main() {
         cppwinrt::cppwinrt([
             "-in",
             "test.winmd",
-            &format!("{}\\System32\\WinMetadata", env!("windir")),
+            "../../../libs/bindgen/default",
             "-out",
             &include,
         ]);

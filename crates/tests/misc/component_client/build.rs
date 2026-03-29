@@ -1,19 +1,16 @@
 fn main() {
-    #[cfg(windows)]
-    {
-        windows_bindgen::bindgen([
-            "--in",
-            "../component/component.winmd",
-            &format!("{}\\System32\\WinMetadata", env!("windir")),
-            "--out",
-            "src/bindings.rs",
-            "--filter",
-            "test_component",
-            "--no-comment",
-            "--flat",
-            "--reference",
-            "windows",
-        ])
-        .unwrap();
-    }
+    windows_bindgen::bindgen([
+        "--in",
+        "../component/component.winmd",
+        "../../../libs/bindgen/default",
+        "--out",
+        "src/bindings.rs",
+        "--filter",
+        "test_component",
+        "--no-comment",
+        "--flat",
+        "--reference",
+        "windows",
+    ])
+    .unwrap();
 }

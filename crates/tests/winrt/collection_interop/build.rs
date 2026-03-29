@@ -5,12 +5,11 @@ fn main() {
         println!("cargo:rerun-if-changed=src/interop.cpp");
         println!("cargo:rustc-link-lib=onecoreuap");
 
-        let metadata_dir = format!("{}\\System32\\WinMetadata", env!("windir"));
         let include = std::env::var("OUT_DIR").unwrap();
 
         windows_rdl::reader()
             .input("src/test.rdl")
-            .input(&metadata_dir)
+            .input("../../../libs/bindgen/default")
             .output("test.winmd")
             .write()
             .unwrap();
@@ -18,7 +17,7 @@ fn main() {
         windows_bindgen::bindgen([
             "--in",
             "test.winmd",
-            &metadata_dir,
+            "../../../libs/bindgen/default",
             "--out",
             "src/bindings.rs",
             "--filter",
@@ -31,7 +30,13 @@ fn main() {
         ])
         .unwrap();
 
-        cppwinrt::cppwinrt(["-in", "test.winmd", &metadata_dir, "-out", &include]);
+        cppwinrt::cppwinrt([
+            "-in",
+            "test.winmd",
+            "../../../libs/bindgen/default",
+            "-out",
+            &include,
+        ]);
 
         cc::Build::new()
             .cpp(true)
