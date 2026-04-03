@@ -2501,15 +2501,15 @@ pub struct DEBUG_VALUE_0_0 {
 }
 #[repr(C)]
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
-pub struct DEBUG_VALUE_0_2 {
-    pub LowPart: u64,
-    pub HighPart: i64,
-}
-#[repr(C)]
-#[derive(Clone, Copy, Debug, Default, PartialEq)]
 pub struct DEBUG_VALUE_0_1 {
     pub LowPart: u32,
     pub HighPart: u32,
+}
+#[repr(C)]
+#[derive(Clone, Copy, Debug, Default, PartialEq)]
+pub struct DEBUG_VALUE_0_2 {
+    pub LowPart: u64,
+    pub HighPart: i64,
 }
 pub const DEBUG_VALUE_FLOAT128: u32 = 9u32;
 pub const DEBUG_VALUE_FLOAT32: u32 = 5u32;
@@ -56989,13 +56989,13 @@ impl Default for ScriptDebugEventInformation_0 {
 }
 #[repr(C)]
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
-pub struct ScriptDebugEventInformation_0_1 {
-    pub BreakpointId: u64,
+pub struct ScriptDebugEventInformation_0_0 {
+    pub IsUncaught: u8,
 }
 #[repr(C)]
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
-pub struct ScriptDebugEventInformation_0_0 {
-    pub IsUncaught: u8,
+pub struct ScriptDebugEventInformation_0_1 {
+    pub BreakpointId: u64,
 }
 pub const ScriptDebugException: ScriptDebugEvent = ScriptDebugEvent(2i32);
 pub const ScriptDebugExecuting: ScriptDebugState = ScriptDebugState(2i32);
