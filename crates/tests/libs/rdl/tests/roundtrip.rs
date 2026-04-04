@@ -1,5 +1,13 @@
 use windows_rdl::*;
 
+/// Returns `true` if the `.rdl` file at `path` contains any reference to a `Windows::` type.
+/// These files need the Windows metadata reference when compiling and writing back.
+fn needs_reference(path: &std::path::Path) -> bool {
+    std::fs::read_to_string(path)
+        .unwrap_or_else(|e| panic!("failed to read {}: {e}", path.display()))
+        .contains("Windows::")
+}
+
 #[test]
 fn roundtrip() {
     let mut paths: Vec<_> = std::fs::read_dir("tests/roundtrip")
@@ -11,20 +19,20 @@ fn roundtrip() {
 
     for path in &paths {
         let winmd = path.with_extension("winmd");
+        let reference = needs_reference(path);
 
-        reader()
-            .input(path.to_str().unwrap())
-            .input("../../../libs/bindgen/default")
-            .output(winmd.to_str().unwrap())
-            .write()
-            .unwrap();
+        let mut r = reader();
+        r.input(path.to_str().unwrap());
+        if reference {
+            r.input("../../../libs/bindgen/default");
+        }
+        r.output(winmd.to_str().unwrap()).write().unwrap();
 
-        writer()
-            .input(winmd.to_str().unwrap())
-            .input("../../../libs/bindgen/default")
-            .output(path.to_str().unwrap())
-            .filter("Test")
-            .write()
-            .unwrap();
+        let mut w = writer();
+        w.input(winmd.to_str().unwrap());
+        if reference {
+            w.input("../../../libs/bindgen/default");
+        }
+        w.output(path.to_str().unwrap()).filter("Test").write().unwrap();
     }
 }
