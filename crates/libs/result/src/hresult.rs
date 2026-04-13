@@ -63,7 +63,7 @@ impl HRESULT {
 
     /// The error message describing the error.
     pub fn message(self) -> String {
-        #[cfg(windows)]
+        #[cfg(all(windows, not(feature = "kernel")))]
         {
             let mut message = HeapString::default();
             let mut code = self.0;
@@ -106,7 +106,7 @@ impl HRESULT {
             }
         }
 
-        #[cfg(not(windows))]
+        #[cfg(any(not(windows), feature = "kernel"))]
         {
             return alloc::format!("0x{:08x}", self.0 as u32);
         }
@@ -114,13 +114,13 @@ impl HRESULT {
 
     /// Creates a new `HRESULT` from the Win32 error code returned by `GetLastError()`.
     pub fn from_thread() -> Self {
-        #[cfg(windows)]
+        #[cfg(all(windows, not(feature = "kernel")))]
         {
             WIN32_ERROR::from_thread().into()
         }
-        #[cfg(not(windows))]
+        #[cfg(any(not(windows), feature = "kernel"))]
         {
-            unimplemented!()
+            unimplemented!("HRESULT::from_thread is not available in kernel mode")
         }
     }
 }

@@ -15,6 +15,7 @@ windows-link = { workspace = true }
 [features]
 default = ["std"]
 std = []
+kernel = []
 
 [lints]
 workspace = true
