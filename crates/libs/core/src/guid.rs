@@ -20,6 +20,7 @@ pub struct GUID {
 
 impl GUID {
     /// Creates a unique `GUID` value.
+    #[cfg(not(feature = "kernel"))]
     pub fn new() -> Result<Self> {
         let mut guid = Self::zeroed();
         let result = unsafe { imp::UuidCreate(&mut guid as *mut _ as _) };

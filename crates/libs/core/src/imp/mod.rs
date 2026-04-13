@@ -8,6 +8,7 @@ mod ref_count;
 mod sha1;
 mod weak_ref_count;
 
+#[cfg_attr(feature = "kernel", allow(unused_imports))]
 pub(crate) use bindings::*;
 pub use can_into::*;
 pub use com_bindings::*;

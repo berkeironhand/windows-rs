@@ -1,3 +1,4 @@
+#[cfg(not(feature = "kernel"))]
 #[inline]
 pub unsafe fn RoGetAgileReference<P2>(
     options: AgileReferenceOptions,

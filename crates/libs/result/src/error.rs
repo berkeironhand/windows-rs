@@ -89,7 +89,7 @@ impl Error {
     /// Creates a new error object, capturing the stack and other information about the
     /// point of failure.
     pub fn new<T: AsRef<str>>(code: HRESULT, message: T) -> Self {
-        #[cfg(windows)]
+        #[cfg(all(windows, not(feature = "kernel")))]
         {
             let message: &str = message.as_ref();
             if message.is_empty() {
@@ -99,7 +99,7 @@ impl Error {
                 code.into()
             }
         }
-        #[cfg(not(windows))]
+        #[cfg(any(not(windows), feature = "kernel"))]
         {
             let _ = message;
             Self::from_hresult(code)
@@ -115,8 +115,15 @@ impl Error {
     }
 
     /// Creates a new `Error` from the Win32 error code returned by `GetLastError()`.
+    #[cfg(not(feature = "kernel"))]
     pub fn from_thread() -> Self {
         Self::from_hresult(HRESULT::from_thread())
+    }
+
+    /// In kernel mode, `GetLastError` is not available.
+    #[cfg(feature = "kernel")]
+    pub fn from_thread() -> Self {
+        unimplemented!("Error::from_thread is not available in kernel mode")
     }
 
     /// The error code describing the error.
@@ -139,7 +146,7 @@ impl Error {
     }
 
     /// The error object describing the error.
-    #[cfg(windows)]
+    #[cfg(all(windows, not(feature = "kernel")))]
     pub fn as_ptr(&self) -> *mut core::ffi::c_void {
         self.info.as_ptr()
     }
@@ -251,7 +258,7 @@ impl Ord for Error {
 
 use error_info::*;
 
-#[cfg(all(windows, not(windows_slim_errors)))]
+#[cfg(all(windows, not(windows_slim_errors), not(feature = "kernel")))]
 mod error_info {
     use super::*;
     use crate::com::ComPtr;
@@ -351,7 +358,7 @@ mod error_info {
     unsafe impl Sync for ErrorInfo {}
 }
 
-#[cfg(not(all(windows, not(windows_slim_errors))))]
+#[cfg(any(not(windows), windows_slim_errors, feature = "kernel"))]
 mod error_info {
     use super::*;
 

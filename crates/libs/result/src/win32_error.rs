@@ -46,8 +46,15 @@ impl WIN32_ERROR {
     }
 
     /// Creates a new `WIN32_ERROR` from the Win32 error code returned by `GetLastError()`.
+    #[cfg(not(feature = "kernel"))]
     pub fn from_thread() -> Self {
         Self(unsafe { GetLastError() })
+    }
+
+    /// In kernel mode, `GetLastError` is not available.
+    #[cfg(feature = "kernel")]
+    pub fn from_thread() -> Self {
+        unimplemented!("WIN32_ERROR::from_thread is not available in kernel mode")
     }
 }
 

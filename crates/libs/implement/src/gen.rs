@@ -325,7 +325,7 @@ fn gen_query_interface(inputs: &ImplementInputs) -> syn::ImplItemFn {
 
     let marshal_query = if inputs.agile {
         quote! {
-            #[cfg(windows)]
+            #[cfg(all(windows, not(feature = "kernel")))]
             if iid == <::windows_core::imp::IMarshal as ::windows_core::Interface>::IID {
                 return ::windows_core::imp::marshaler(self.to_interface(), interface);
             }

@@ -19,7 +19,10 @@ impl BOOL {
         if self.as_bool() {
             Ok(())
         } else {
-            Err(Error::from_thread())
+            #[cfg(not(feature = "kernel"))]
+            { Err(Error::from_thread()) }
+            #[cfg(feature = "kernel")]
+            { Err(Error::from_hresult(HRESULT(E_UNEXPECTED))) }
         }
     }
 

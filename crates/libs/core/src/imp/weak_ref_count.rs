@@ -216,7 +216,7 @@ impl TearOff {
             {
                 ptr
             } else {
-                #[cfg(windows)]
+                #[cfg(all(windows, not(feature = "kernel")))]
                 if *iid == IMarshal::IID {
                     this.weak_count.add_ref();
                     return marshaler(transmute::<*mut c_void, IUnknown>(ptr), interface);

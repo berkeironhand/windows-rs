@@ -12,20 +12,22 @@
 
 extern crate alloc;
 
-use alloc::{string::String, vec::Vec};
+use alloc::string::String;
+#[cfg(all(windows, not(windows_slim_errors), not(feature = "kernel")))]
+use alloc::vec::Vec;
 
 mod bindings;
 use bindings::*;
 
-#[cfg(all(windows, not(windows_slim_errors)))]
+#[cfg(all(windows, not(windows_slim_errors), not(feature = "kernel")))]
 mod com;
 
-#[cfg(windows)]
+#[cfg(all(windows, not(feature = "kernel")))]
 mod strings;
-#[cfg(windows)]
+#[cfg(all(windows, not(feature = "kernel")))]
 use strings::*;
 
-#[cfg(all(windows, not(windows_slim_errors)))]
+#[cfg(all(windows, not(windows_slim_errors), not(feature = "kernel")))]
 mod bstr;
 
 mod error;
