@@ -9,6 +9,10 @@ repository = "https://github.com/microsoft/windows-rs"
 categories = ["os::windows-apis"]
 readme = "readme.md"
 
+[features]
+default = []
+extended-inputs = []
+
 [dependencies]
 proc-macro2 = { workspace = true }
 quote = { workspace = true }

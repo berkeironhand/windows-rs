@@ -488,7 +488,15 @@ impl syn::parse::Parse for Interface {
 ///     fn GetValue(&self, value: *mut f64) -> HRESULT;
 /// }
 /// ```
+#[cfg(not(feature = "extended-inputs"))]
 struct Guid(Option<syn::LitStr>);
+
+#[cfg(feature = "extended-inputs")]
+enum Guid {
+    StringLiteral(syn::LitStr),
+    Path(syn::Path),
+    None,
+}
 
 impl Guid {
     fn to_tokens(&self) -> syn::Result<proc_macro2::TokenStream> {
@@ -527,7 +535,25 @@ impl Guid {
             Ok(part.to_owned())
         }
 
-        if let Some(value) = &self.0 {
+        #[cfg(not(feature = "extended-inputs"))]
+        let value = self.0.as_ref();
+        #[cfg(feature = "extended-inputs")]
+        let value = match self {
+            Guid::StringLiteral(s) => Some(s),
+            Guid::Path(path) => {
+                return Ok(quote! {
+                    {
+                        const __IID_SRC: ::windows_core::GUID = unsafe {
+                            ::core::mem::transmute(#path)
+                        };
+                        __IID_SRC
+                    }
+                })
+            }
+            Guid::None => None,
+        };
+
+        if let Some(value) = value {
             let guid_value = value.value();
             let mut delimited = guid_value.split('-').fuse();
             let chunks = [
@@ -575,11 +601,25 @@ impl Guid {
     }
 }
 
+#[cfg(not(feature = "extended-inputs"))]
 impl syn::parse::Parse for Guid {
     fn parse(cursor: syn::parse::ParseStream) -> syn::Result<Self> {
         let string: Option<syn::LitStr> = cursor.parse().ok();
 
         Ok(Self(string))
+    }
+}
+
+#[cfg(feature = "extended-inputs")]
+impl syn::parse::Parse for Guid {
+    fn parse(cursor: syn::parse::ParseStream) -> syn::Result<Self> {
+        if let Ok(lit) = cursor.parse::<syn::LitStr>() {
+            return Ok(Guid::StringLiteral(lit));
+        }
+        if let Ok(path) = cursor.parse::<syn::Path>() {
+            return Ok(Guid::Path(path));
+        }
+        Ok(Guid::None)
     }
 }
 

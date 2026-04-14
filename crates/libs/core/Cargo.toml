@@ -20,6 +20,7 @@ windows-strings = { workspace = true }
 default = ["std"]
 std = ["windows-result/std", "windows-strings/std"]
 kernel = ["windows-result/kernel"]
+extended-inputs = ["windows-interface/extended-inputs"]
 
 [lints]
 workspace = true
